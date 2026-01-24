@@ -17,6 +17,48 @@
             font-family: 'Noto Serif TC', serif;
         }
 
+        /* --- 0. 讀取畫面 (Loading Screen) --- */
+        #loading-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0b0d0f;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out;
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            color: #bdc3c7;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 2px;
+            animation: pulse-text 1.5s infinite alternate;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-text {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
         /* --- 1. 窗景層 --- */
         #view-window {
             position: absolute;
@@ -79,7 +121,11 @@
             z-index: 5; 
             text-align: center;
             color: #fff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 30px rgba(0,0,0,0.6);
+            /* 修改點2：加強文字陰影，確保在白雲背景下也能看清 */
+            text-shadow: 
+                0 0 5px rgba(0,0,0,0.9), 
+                0 0 10px rgba(0,0,0,0.8),
+                0 0 20px rgba(0,0,0,0.8);
             width: 40vw; 
             max-width: 700px;
             opacity: 0;
@@ -100,7 +146,7 @@
             line-height: 1.8; 
             margin-bottom: 25px;
             font-weight: 700;
-            color: #fffae6;
+            color: #ffffff; /* 改為純白 */
             letter-spacing: 2px;
             word-wrap: break-word; 
         }
@@ -108,13 +154,14 @@
         .quote-source {
             font-size: 1rem;
             font-weight: 400;
-            color: #bdc3c7;
+            color: #ecf0f1; /* 稍微亮一點的灰色 */
             display: block; 
             border-top: 1px solid rgba(255,255,255,0.6);
             padding-top: 12px;
             letter-spacing: 1px;
             max-width: 80%;
             margin: 0 auto; 
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9); /* 來源也加陰影 */
         }
 
         /* --- 2. 機艙螢幕層 --- */
@@ -271,6 +318,7 @@
             align-items: center;
             justify-content: center;
             text-decoration: none; 
+            box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
         }
 
         .neon-btn span { position: relative; z-index: 2; }
@@ -328,7 +376,7 @@
         .flight-board-container {
             margin-top: 20px;
             background: #111;
-            border: 4px solid #34495e; /* 邊框加粗，像螢幕外框 */
+            border: 4px solid #34495e; 
             border-radius: 6px;
             padding: 10px;
             box-shadow: 
@@ -341,7 +389,7 @@
         .flight-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 4px; /* 行與行之間分開，像翻牌條 */
+            border-spacing: 0 4px; 
             color: #ecf0f1;
             min-width: 600px; 
         }
@@ -358,13 +406,13 @@
 
         .flight-table td {
             padding: 12px;
-            background: #222; /* 每一格有深色背景 */
+            background: #222; 
             font-size: 1rem;
-            border-right: 2px solid #111; /* 分隔線 */
+            border-right: 2px solid #111; 
             position: relative;
             overflow: hidden;
         }
-        .flight-table td:first-child { border-left: 2px solid #3498db; } /* 裝飾線 */
+        .flight-table td:first-child { border-left: 2px solid #3498db; } 
         .flight-table tr:hover td { background: #2c3e50; }
 
         /* 狀態顏色 */
@@ -548,20 +596,20 @@
 
         /* --- 彈出視窗 (Modal) 下拉式 & 固定位置 --- */
         #modal-overlay {
-            position: absolute; /* 對齊 seat-frame */
+            position: absolute; 
             top: 0; left: 0; 
             width: 100%; height: 100%;
             background: rgba(11, 13, 15, 0.85);
             z-index: 9999;
             display: none; 
-            justify-content: center; /* 水平置中 */
-            align-items: flex-start; /* 垂直靠上 */
+            justify-content: center; 
+            align-items: flex-start; 
             backdrop-filter: blur(8px);
             opacity: 0;
             transition: opacity 0.3s;
-            padding-top: 12vh; /* 距離頂部 12%，不會太高 */
+            padding-top: 12vh; 
             box-sizing: border-box;
-            border-radius: 30px; /* 配合外框 */
+            border-radius: 30px; 
         }
 
         #modal-box {
@@ -762,12 +810,29 @@
             .seat-frame { width: 100%; height: 100%; border-radius: 0; padding: 0; border: none; box-shadow: none; }
             .screen-display { border: none; border-radius: 0; padding-bottom: 120px; }
             .magnifier { width: 220px; height: 220px; }
-            .discount-container { flex-direction: column; }
-            .neon-btn { min-width: 100%; }
+            
+            /* 修改點1：手機板將按鈕容器改為直向排列 */
+            .discount-container { 
+                flex-direction: column; 
+            }
+            /* 修改點1：讓所有按鈕在手機板都佔滿寬度 */
+            .neon-btn { 
+                width: 100%; 
+                min-width: 0; /* 防止 flex 項目溢出 */
+                margin-bottom: 10px; /* 增加按鈕之間的間距 */
+            }
+            .neon-btn:last-child {
+                margin-bottom: 0;
+            }
         }
     </style>
 </head>
 <body>
+
+    <div id="loading-layer">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">SYSTEM INITIALIZING...</div>
+    </div>
 
     <div id="view-window">
         <div class="panorama-container">
@@ -788,7 +853,7 @@
                 <h1>2026臺北國際書展：人生候機室</h1>
 
                 <div class="neon-box">
-                    <div class="neon-title">臺北國際書展基督教出版聯展：請點亮折扣</div>
+                    <div class="neon-title">基督教出版聯展：請點亮折扣</div>
                     <div class="discount-container">
                         <button class="neon-btn blue" onclick="toggleDiscount(this, 1)">
                             <span>單本登機 79 折</span>
@@ -803,8 +868,8 @@
 
                 <div class="info-box">
                     <h2>航班即時動態</h2>
-                    <div style="margin-bottom: 20px;">
-                        <a href="https://www.facebook.com/share/1CG7mMQts3/" target="_blank" class="neon-btn green">
+                    <div style="margin-bottom: 20px;" class="discount-container">
+                        <a href="https://www.facebook.com/share/1CG7mMQts3/" target="_blank" class="neon-btn green" style="width: 100%;">
                             <span>最新活動資訊 (Facebook)</span>
                             <div class="btn-status">點擊前往粉絲專頁</div>
                         </a>
@@ -849,13 +914,13 @@
                             </div>
                         </div>
                         
-                        <div class="mission-buttons">
-                            <a href="https://forms.gle/6QDEgxFwhBdJSkjz5" target="_blank" class="neon-btn blue" style="min-width: 250px;">
+                        <div class="mission-buttons discount-container">
+                            <a href="https://forms.gle/6QDEgxFwhBdJSkjz5" target="_blank" class="neon-btn blue">
                                 <span>任務01：進入前請先填寫入境卡</span>
                                 <div class="btn-status">CLICK TO OPEN</div>
                             </a>
                             
-                            <div id="scan-btn" class="neon-btn red" style="min-width: 250px; cursor: pointer;"
+                            <div id="scan-btn" class="neon-btn red" style="cursor: pointer;"
                                  onmousedown="startScan(this)" ontouchstart="startScan(this)" 
                                  onmouseup="stopScan(this)" ontouchend="stopScan(this)" 
                                  onmouseleave="stopScan(this)">
@@ -948,6 +1013,18 @@
         const switchBtn = document.getElementById('switch-btn');
         const bgMusic = document.getElementById('cabin-audio');
         const audioBtn = document.getElementById('audio-btn');
+        const loadingLayer = document.getElementById('loading-layer');
+
+        // --- 讀取畫面控制 (修改點3) ---
+        window.addEventListener('load', () => {
+            // 當所有資源(圖片)讀取完畢後
+            setTimeout(() => {
+                loadingLayer.style.opacity = '0';
+                setTimeout(() => {
+                    loadingLayer.style.display = 'none';
+                }, 800);
+            }, 500); // 至少顯示0.5秒以免閃爍
+        });
 
         // --- 視角切換 ---
         function toggleView() {
