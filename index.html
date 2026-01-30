@@ -1,1724 +1,1502 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026臺北國際書展：人生候機室</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Roboto:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <style>
-        /* --- 全域設定 --- */
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #0b0d0f;
-            font-family: 'Noto Serif TC', serif;
-        }
-
-        /* --- 0. 讀取畫面 (Loading Screen) --- */
-        #loading-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0b0d0f;
-            z-index: 999999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.8s ease-out;
-        }
-        
-        .loader-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(52, 152, 219, 0.3);
-            border-radius: 50%;
-            border-top-color: #3498db;
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 20px;
-        }
-
-        .loader-text {
-            color: #bdc3c7;
-            font-family: 'Share Tech Mono', monospace;
-            letter-spacing: 2px;
-            animation: pulse-text 1.5s infinite alternate;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse-text {
-            from { opacity: 0.5; }
-            to { opacity: 1; }
-        }
-
-        /* --- 1. 窗景層 --- */
-        #view-window {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
-            z-index: 10; 
-            background: #000;
-        }
-
-        #view-window.slide-out {
-            transform: translateX(100%);
-        }
-
-        .panorama-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            background: linear-gradient(to bottom, #1e272e, #000000);
-            pointer-events: none;
-        }
-
-        .cloud-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: auto; 
-            animation: panRightToLeft 120s linear infinite alternate; 
-            pointer-events: none;
-            opacity: 0.8;
-        }
-        
-        @keyframes panRightToLeft {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-30%); } 
-        }
-
-        #window-frame {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            object-fit: cover; 
-            pointer-events: none;
-        }
-
-        #quote-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 5; 
-            text-align: center;
-            color: #fff;
-            text-shadow: 
-                0 0 5px rgba(0,0,0,0.9), 
-                0 0 10px rgba(0,0,0,0.8),
-                0 0 20px rgba(0,0,0,0.8);
-            width: 40vw; 
-            max-width: 700px;
-            opacity: 0;
-            filter: blur(8px);
-            transform: translate(-50%, -50%) scale(0.96);
-            transition: all 2s ease-out; 
-            pointer-events: none;
-        }
-
-        #quote-container.visible {
-            opacity: 1;
-            filter: blur(0px);
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        .quote-text {
-            font-size: clamp(1.3rem, 2vw, 2rem); 
-            line-height: 1.8; 
-            margin-bottom: 25px;
-            font-weight: 700;
-            color: #ffffff; 
-            letter-spacing: 2px;
-            word-wrap: break-word; 
-        }
-
-        .quote-source {
-            font-size: 1rem;
-            font-weight: 400;
-            color: #ecf0f1; 
-            display: block; 
-            border-top: 1px solid rgba(255,255,255,0.6);
-            padding-top: 12px;
-            letter-spacing: 1px;
-            max-width: 80%;
-            margin: 0 auto; 
-            text-shadow: 0 2px 5px rgba(0,0,0,0.9); 
-        }
-
-        /* --- 2. 機艙螢幕層 --- */
-        #seat-screen {
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background-color: #1e272e;
-            background-image: radial-gradient(#2c3e50 1px, transparent 1px);
-            background-size: 20px 20px;
-            z-index: 20; 
-            transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        #seat-screen.slide-in {
-            transform: translateX(100%);
-        }
-
-        .seat-frame {
-            width: 90%;
-            max-width: 900px;
-            height: 90%;
-            background: #0b0d0f;
-            border-radius: 30px;
-            box-shadow: 
-                inset 0 0 10px #2c3e50, 
-                0 20px 50px rgba(0,0,0,0.9),
-                0 0 0 10px #15191d; 
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .screen-display {
-            flex: 1;
-            background: #15191d;
-            border-radius: 10px;
-            overflow-y: auto; 
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5); 
-            border: 2px solid #2c3e50;
-            padding: 20px;
-            font-family: 'Roboto', 'Noto Serif TC', sans-serif;
-            color: #ecf0f1;
-            position: relative;
-            -webkit-overflow-scrolling: touch; 
-        }
-
-        .screen-display::-webkit-scrollbar { width: 8px; }
-        .screen-display::-webkit-scrollbar-track { background: #15191d; }
-        .screen-display::-webkit-scrollbar-thumb { background: #34495e; border-radius: 4px; }
-
-        h1 {
-            color: #ecf0f1;
-            border-bottom: 2px solid #e74c3c;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-            font-size: 1.8rem;
-            text-align: center;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        h2 {
-            color: #3498db;
-            margin-top: 30px;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-        
-        h2::before {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 18px;
-            background: #e74c3c;
-            margin-right: 12px;
-            box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
-        }
-
-        p, li {
-            line-height: 1.7;
-            margin-bottom: 10px;
-            font-size: 1rem;
-            color: #bdc3c7;
-        }
-
-        ul { list-style: none; padding-left: 5px; }
-        li::before {
-            content: "";
-            display: inline-block;
-            width: 6px; height: 6px;
-            background: #3498db;
-            border-radius: 50%;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-
-        /* --- 霓虹按鈕 --- */
-        .neon-box {
-            border: 1px solid #34495e;
-            background: rgba(30, 39, 46, 0.5);
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        .neon-title {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-        }
-
-        .discount-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .neon-btn {
-            position: relative;
-            background: #1e272e;
-            color: #7f8c8d; 
-            border: 2px solid #34495e;
-            padding: 20px 30px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-            min-width: 200px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none; 
-            box-sizing: border-box; 
-        }
-
-        .neon-btn span { position: relative; z-index: 2; }
-
-        /* 藍色系 */
-        .neon-btn.blue { border-color: #34495e; color: #7f8c8d; }
-        .neon-btn.blue.active, .neon-btn.blue:hover {
-            color: #fff;
-            border-color: #3498db;
-            background: rgba(52, 152, 219, 0.1);
-            box-shadow: 0 0 15px rgba(52, 152, 219, 0.8), inset 0 0 10px rgba(52, 152, 219, 0.3);
-            text-shadow: 0 0 8px rgba(52, 152, 219, 1);
-        }
-
-        /* 紅色系 */
-        .neon-btn.red { border-color: #34495e; color: #7f8c8d; }
-        .neon-btn.red.active, .neon-btn.red:hover {
-            color: #fff;
-            border-color: #e74c3c;
-            background: rgba(231, 76, 60, 0.1);
-            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8), inset 0 0 10px rgba(231, 76, 60, 0.3);
-            text-shadow: 0 0 8px rgba(231, 76, 60, 1);
-        }
-
-        /* 綠色系 (FB) */
-        .neon-btn.green { border-color: #34495e; color: #7f8c8d; }
-        .neon-btn.green.active, .neon-btn.green:hover {
-            color: #fff;
-            border-color: #2ecc71;
-            background: rgba(46, 204, 113, 0.1);
-            box-shadow: 0 0 15px rgba(46, 204, 113, 0.8), inset 0 0 10px rgba(46, 204, 113, 0.3);
-            text-shadow: 0 0 8px rgba(46, 204, 113, 1);
-        }
-
-        .neon-btn.start-anim { animation: startUp 0.6s ease-out forwards; }
-        
-        @keyframes startUp {
-            0% { opacity: 0.5; border-color: #1e272e; }
-            10% { opacity: 1; border-color: currentColor; box-shadow: 0 0 10px currentColor; }
-            50% { opacity: 1; border-color: #fff; box-shadow: 0 0 50px #fff; }
-            100% { opacity: 1; border-color: currentColor; box-shadow: 0 0 15px currentColor; }
-        }
-
-        .btn-status {
-            display: block;
-            font-size: 0.75rem;
-            margin-top: 8px;
-            opacity: 0.7; 
-            transition: opacity 0.5s;
-            color: inherit;
-        }
-        .neon-btn:hover .btn-status, .neon-btn.active .btn-status { opacity: 1; }
-
-        /* --- 航班動態板 (Flip Board Style) --- */
-        .flight-board-container {
-            margin-top: 20px;
-            background: #111;
-            border: 4px solid #34495e; 
-            border-radius: 6px;
-            padding: 10px;
-            box-shadow: 
-                inset 0 0 20px rgba(0,0,0,1),
-                0 0 10px rgba(255,255,255,0.05);
-            font-family: 'Share Tech Mono', monospace; 
-            overflow-x: auto;
-        }
-
-        .flight-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 4px; 
-            color: #ecf0f1;
-            min-width: 600px; 
-        }
-
-        .flight-table th {
-            text-align: left;
-            padding: 8px 12px;
-            color: #95a5a6; 
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            border-bottom: 1px solid #333;
-        }
-
-        .flight-table td {
-            padding: 12px;
-            background: #222; 
-            font-size: 1rem;
-            border-right: 2px solid #111; 
-            position: relative;
-            overflow: hidden;
-        }
-        .flight-table td:first-child { border-left: 2px solid #3498db; } 
-        .flight-table tr:hover td { background: #2c3e50; }
-
-        /* 狀態顏色 */
-        .status-delayed { color: #e74c3c; font-weight: bold; }
-        .status-ontime { color: #2ecc71; }
-        .status-boarding { color: #f1c40f; animation: pulse 1s infinite alternate; }
-        .status-departed { color: #7f8c8d; }
-        
-        .remark-text { font-size: 0.85rem; color: #bdc3c7; }
-
-        @keyframes pulse {
-            from { text-shadow: 0 0 2px #f1c40f; opacity: 1; }
-            to { text-shadow: 0 0 8px #f1c40f; opacity: 0.7; }
-        }
-
-        /* --- 任務區 --- */
-        .mission-area {
-            text-align: center;
-            margin-bottom: 30px;
-            position: relative;
-            background: rgba(0,0,0,0.2);
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px dashed #34495e;
-        }
-
-        #physics-container {
-            position: relative;
-            width: 100%;
-            height: 300px; 
-            margin: 0 auto 20px auto;
-            overflow: hidden;
-            border-radius: 8px;
-            background: radial-gradient(circle at center, rgba(52, 152, 219, 0.05) 0%, transparent 70%);
-            border: 1px solid rgba(255,255,255,0.05);
-            cursor: crosshair;
-        }
-
-        .badge-wrapper {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            will-change: transform;
-        }
-
-        .badge-orb {
-            width: 100%;
-            height: 100%;
-            background-image: url('SJPNG.png');
-            background-size: 200% 200%;
-            border-radius: 50%;
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 5px 5px 15px rgba(0,0,0,0.5);
-            overflow: hidden;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .badge-orb::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent 50%);
-        }
-
-        .b1 { background-position: 0 0; }
-        .b2 { background-position: 100% 0; }
-        .b3 { background-position: 0 100%; }
-        .b4 { background-position: 100% 100%; }
-
-        .speech-bubble {
-            position: absolute;
-            bottom: 110%; 
-            left: 50%;
-            transform: translateX(-50%) scale(0);
-            background: #fff;
-            color: #2c3e50;
-            padding: 8px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            width: 140px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 5;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none;
-            line-height: 1.4;
-        }
-
-        .speech-bubble::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -6px;
-            border-width: 6px;
-            border-style: solid;
-            border-color: #fff transparent transparent transparent;
-        }
-
-        .speech-bubble.show {
-            transform: translateX(-50%) scale(1);
-        }
-
-        .mission-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        /* --- 長按掃描特效 (Task 02 專用) --- */
-        #scan-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.1s;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-        }
-
-        .scan-progress-bar {
-            position: absolute;
-            bottom: 0; left: 0;
-            width: 0%; height: 100%;
-            background: rgba(231, 76, 60, 0.2);
-            border-right: 2px solid #e74c3c;
-            box-shadow: 0 0 20px #e74c3c;
-            transition: width 0.1s linear;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .fingerprint-zone {
-            width: 40px; height: 40px;
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 50%;
-            margin-bottom: 5px;
-            position: relative;
-            display: flex; align-items: center; justify-content: center;
-        }
-        
-        .fingerprint-zone::after {
-            content: '';
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
-            animation: pulse-finger 2s infinite;
-        }
-
-        @keyframes pulse-finger {
-            0% { transform: scale(0.8); opacity: 0.3; }
-            50% { transform: scale(1.1); opacity: 0.6; }
-            100% { transform: scale(0.8); opacity: 0.3; }
-        }
-
-        .shaking { animation: shake 0.5s infinite; }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-
-        .scan-success { animation: flashSuccess 0.5s forwards; }
-
-        @keyframes flashSuccess {
-            0% { background-color: #fff; box-shadow: 0 0 50px #fff; }
-            100% { background-color: #2c3e50; border-color: #2ecc71; color: #2ecc71; }
-        }
-
-        /* --- 彈出視窗 (Modal) 下拉式 & 固定位置 --- */
-        #modal-overlay {
-            position: absolute; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%;
-            background: rgba(11, 13, 15, 0.85);
-            z-index: 9999;
-            display: none; 
-            justify-content: center; 
-            align-items: flex-start; 
-            backdrop-filter: blur(8px);
-            opacity: 0;
-            transition: opacity 0.3s;
-            padding-top: 12vh; 
-            box-sizing: border-box;
-            border-radius: 30px; 
-        }
-
-        #modal-box {
-            background: linear-gradient(180deg, #1e272e 0%, #15191d 100%);
-            border: 1px solid #f1c40f;
-            border-top: 4px solid #f1c40f;
-            padding: 30px;
-            text-align: center;
-            width: 85%;
-            max-width: 500px;
-            box-shadow: 
-                0 20px 50px rgba(0,0,0,0.9), 
-                0 0 30px rgba(241, 196, 15, 0.15);
-            
-            transform-origin: top center;
-            transform: perspective(1000px) rotateX(-90deg) translateY(-50px);
-            opacity: 0;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-radius: 0 0 10px 10px;
-        }
-        
-        #modal-img {
-            max-width: 100%;
-            height: auto;
-            max-height: 50vh;
-            border: 1px solid #444;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-
-        .dm-instruction {
-            color: #f1c40f;
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border-bottom: 1px dashed #f1c40f;
-            padding-bottom: 10px;
-            display: block;
-            width: 100%;
-            letter-spacing: 1px;
-        }
-
-        #modal-close {
-            background: transparent;
-            color: #bdc3c7;
-            border: 1px solid #bdc3c7;
-            padding: 8px 30px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        #modal-close:hover { 
-            background: #e74c3c; 
-            color: #fff; 
-            border-color: #e74c3c;
-            box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
-        }
-
-        #modal-overlay.active { display: flex; opacity: 1; }
-        #modal-overlay.active #modal-box { 
-            transform: perspective(1000px) rotateX(0deg) translateY(0); 
-            opacity: 1; 
-        }
-
-        .info-box {
-            background: rgba(255,255,255,0.03);
-            padding: 20px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-        }
-
-        .nav-btn {
-            display: block;
-            margin-top: 15px;
-            padding: 15px 20px;
-            background-color: #2c3e50;
-            color: #e74c3c;
-            text-decoration: none;
-            border: 1px solid #e74c3c;
-            border-left: 4px solid #e74c3c;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        .nav-btn:hover {
-            background-color: #e74c3c;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
-        }
-
-        /* 地圖區塊 */
-        .map-container {
-            position: relative;
-            width: 100%;
-            margin-top: 20px;
-            border: 1px solid #555;
-            overflow: hidden;
-            cursor: crosshair;
-        }
-        .map-img { width: 100%; display: block; }
-        .map-marker-group {
-            position: absolute;
-            left: 55%; top: 30.5%;
-            transform: translate(-50%, -100%);
-            display: flex; flex-direction: column; align-items: center;
-            animation: bounce 1s infinite;
-            z-index: 5; pointer-events: none;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-        }
-        .marker-text {
-            background: #e74c3c; color: white;
-            padding: 4px 8px; border-radius: 2px;
-            font-size: 0.8rem; font-weight: bold;
-            margin-bottom: 2px; white-space: nowrap;
-        }
-        .marker-arrow {
-            width: 0; height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 16px solid #e74c3c;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translate(-50%, -100%); }
-            50% { transform: translate(-50%, -130%); }
-        }
-        .magnifier {
-            position: absolute;
-            border: 2px solid #e74c3c; border-radius: 50%;
-            width: 350px; height: 350px;
-            display: none; z-index: 10;
-            background-repeat: no-repeat; background-color: #222;
-            box-shadow: 0 0 30px rgba(0,0,0,0.9);
-            pointer-events: none; overflow: hidden;
-        }
-        .magnifier-marker-group {
-            position: absolute;
-            display: flex; flex-direction: column; align-items: center;
-            transform: translate(-50%, -100%);
-            scale: 1.2; transform-origin: bottom center;
-        }
-
-        .screen-controls { margin-top: 30px; display: flex; justify-content: center; }
-        #back-btn {
-            background: #1e272e; color: #bdc3c7;
-            border: 1px solid #34495e; padding: 15px 50px;
-            font-size: 0.9rem; cursor: pointer;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-            transition: all 0.2s; text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        #back-btn:hover {
-            color: #fff; border-color: #3498db;
-            background: #2c3e50; box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
-        }
-
-        /* 浮動按鈕 */
-        .circle-btn {
-            position: fixed; 
-            bottom: 30px; 
-            z-index: 99999; 
-            background: rgba(30, 39, 46, 0.9); 
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 30px; 
-            padding: 12px 25px;
-            cursor: pointer; 
-            font-size: 0.9rem;
-            backdrop-filter: blur(5px); 
-            transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center;
-            text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        .circle-btn:active { transform: scale(0.95); }
-        .circle-btn:hover { background: #3498db; border-color: #3498db; }
-        #switch-btn { left: 20px; }
-        #audio-btn { right: 20px; }
-
-        @media (max-width: 768px) {
-            #window-frame { object-position: center; }
-            #quote-container { width: auto; max-width: 260px; padding: 0; }
-            .quote-text { font-size: 0.95rem; line-height: 1.6; margin-bottom: 12px; }
-            .quote-source { font-size: 0.8rem; padding-top: 8px; max-width: 100%; white-space: normal; word-wrap: break-word; }
-            .seat-frame { width: 100%; height: 100%; border-radius: 0; padding: 0; border: none; box-shadow: none; }
-            .screen-display { border: none; border-radius: 0; padding-bottom: 120px; }
-            .magnifier { width: 220px; height: 220px; }
-            
-            /* 修改點1：手機板將按鈕容器改為直向排列 */
-            .discount-container { 
-                flex-direction: column; 
-            }
-            /* 修改點1：讓所有按鈕在手機板都佔滿寬度 */
-            .neon-btn { 
-                width: 100%; 
-                min-width: 0; /* 防止 flex 項目溢出 */
-                margin-bottom: 10px; /* 增加按鈕之間的間距 */
-            }
-            .neon-btn:last-child {
-                margin-bottom: 0;
-            }
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026臺北國際書展：人生候機室</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Roboto:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* --- 全域設定 --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0d0f;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        /* --- 0. 讀取畫面 (Loading Screen) --- */
+        #loading-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0b0d0f;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out;
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            color: #bdc3c7;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 2px;
+            animation: pulse-text 1.5s infinite alternate;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-text {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        /* --- 1. 窗景層 --- */
+        #view-window {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+            z-index: 10; 
+            background: #000;
+        }
+
+        #view-window.slide-out {
+            transform: translateX(100%);
+        }
+
+        .panorama-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: linear-gradient(to bottom, #1e272e, #000000);
+            pointer-events: none;
+        }
+
+        .cloud-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: auto; 
+            animation: panRightToLeft 120s linear infinite alternate; 
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        
+        @keyframes panRightToLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-30%); } 
+        }
+
+        #window-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            object-fit: cover; 
+            pointer-events: none;
+        }
+
+        #quote-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5; 
+            text-align: center;
+            color: #fff;
+            /* 修改點2：加強文字陰影，確保在白雲背景下也能看清 */
+            text-shadow: 
+                0 0 5px rgba(0,0,0,0.9), 
+                0 0 10px rgba(0,0,0,0.8),
+                0 0 20px rgba(0,0,0,0.8);
+            width: 40vw; 
+            max-width: 700px;
+            opacity: 0;
+            filter: blur(8px);
+            transform: translate(-50%, -50%) scale(0.96);
+            transition: all 2s ease-out; 
+            pointer-events: none;
+        }
+
+        #quote-container.visible {
+            opacity: 1;
+            filter: blur(0px);
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .quote-text {
+            font-size: clamp(1.3rem, 2vw, 2rem); 
+            line-height: 1.8; 
+            margin-bottom: 25px;
+            font-weight: 700;
+            color: #ffffff; /* 改為純白 */
+            letter-spacing: 2px;
+            word-wrap: break-word; 
+        }
+
+        .quote-source {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #ecf0f1; /* 稍微亮一點的灰色 */
+            display: block; 
+            border-top: 1px solid rgba(255,255,255,0.6);
+            padding-top: 12px;
+            letter-spacing: 1px;
+            max-width: 80%;
+            margin: 0 auto; 
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9); /* 來源也加陰影 */
+        }
+
+        /* --- 2. 機艙螢幕層 --- */
+        #seat-screen {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background-color: #1e272e;
+            background-image: radial-gradient(#2c3e50 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 20; 
+            transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #seat-screen.slide-in {
+            transform: translateX(100%);
+        }
+
+        .seat-frame {
+            width: 90%;
+            max-width: 900px;
+            height: 90%;
+            background: #0b0d0f;
+            border-radius: 30px;
+            box-shadow: 
+                inset 0 0 10px #2c3e50, 
+                0 20px 50px rgba(0,0,0,0.9),
+                0 0 0 10px #15191d; 
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .screen-display {
+            flex: 1;
+            background: #15191d;
+            border-radius: 10px;
+            overflow-y: auto; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5); 
+            border: 2px solid #2c3e50;
+            padding: 20px;
+            font-family: 'Roboto', 'Noto Serif TC', sans-serif;
+            color: #ecf0f1;
+            position: relative;
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        .screen-display::-webkit-scrollbar { width: 8px; }
+        .screen-display::-webkit-scrollbar-track { background: #15191d; }
+        .screen-display::-webkit-scrollbar-thumb { background: #34495e; border-radius: 4px; }
+
+        h1 {
+            color: #ecf0f1;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: #e74c3c;
+            margin-right: 12px;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+        }
+
+        p, li {
+            line-height: 1.7;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #bdc3c7;
+        }
+
+        ul { list-style: none; padding-left: 5px; }
+        li::before {
+            content: "";
+            display: inline-block;
+            width: 6px; height: 6px;
+            background: #3498db;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        /* --- 霓虹按鈕 --- */
+        .neon-box {
+            border: 1px solid #34495e;
+            background: rgba(30, 39, 46, 0.5);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .neon-title {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .discount-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .neon-btn {
+            position: relative;
+            background: #1e272e;
+            color: #7f8c8d; 
+            border: 2px solid #34495e;
+            padding: 20px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 200px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none; 
+            box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+        }
+
+        .neon-btn span { position: relative; z-index: 2; }
+
+        /* 藍色系 */
+        .neon-btn.blue { border-color: #34495e; color: #7f8c8d; }
+        .neon-btn.blue.active, .neon-btn.blue:hover {
+            color: #fff;
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.8), inset 0 0 10px rgba(52, 152, 219, 0.3);
+            text-shadow: 0 0 8px rgba(52, 152, 219, 1);
+        }
+
+        /* 紅色系 */
+        .neon-btn.red { border-color: #34495e; color: #7f8c8d; }
+        .neon-btn.red.active, .neon-btn.red:hover {
+            color: #fff;
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.8), inset 0 0 10px rgba(231, 76, 60, 0.3);
+            text-shadow: 0 0 8px rgba(231, 76, 60, 1);
+        }
+
+        /* 綠色系 (FB) */
+        .neon-btn.green { border-color: #34495e; color: #7f8c8d; }
+        .neon-btn.green.active, .neon-btn.green:hover {
+            color: #fff;
+            border-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.8), inset 0 0 10px rgba(46, 204, 113, 0.3);
+            text-shadow: 0 0 8px rgba(46, 204, 113, 1);
+        }
+
+        .neon-btn.start-anim { animation: startUp 0.6s ease-out forwards; }
+        
+        @keyframes startUp {
+            0% { opacity: 0.5; border-color: #1e272e; }
+            10% { opacity: 1; border-color: currentColor; box-shadow: 0 0 10px currentColor; }
+            50% { opacity: 1; border-color: #fff; box-shadow: 0 0 50px #fff; }
+            100% { opacity: 1; border-color: currentColor; box-shadow: 0 0 15px currentColor; }
+        }
+
+        .btn-status {
+            display: block;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            opacity: 0.7; 
+            transition: opacity 0.5s;
+            color: inherit;
+        }
+        .neon-btn:hover .btn-status, .neon-btn.active .btn-status { opacity: 1; }
+
+        /* --- 航班動態板 (Flip Board Style) --- */
+        .flight-board-container {
+            margin-top: 20px;
+            background: #111;
+            border: 4px solid #34495e; 
+            border-radius: 6px;
+            padding: 10px;
+            box-shadow: 
+                inset 0 0 20px rgba(0,0,0,1),
+                0 0 10px rgba(255,255,255,0.05);
+            font-family: 'Share Tech Mono', monospace; 
+            overflow-x: auto;
+        }
+
+        .flight-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px; 
+            color: #ecf0f1;
+            min-width: 600px; 
+        }
+
+        .flight-table th {
+            text-align: left;
+            padding: 8px 12px;
+            color: #95a5a6; 
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #333;
+        }
+
+        .flight-table td {
+            padding: 12px;
+            background: #222; 
+            font-size: 1rem;
+            border-right: 2px solid #111; 
+            position: relative;
+            overflow: hidden;
+        }
+        .flight-table td:first-child { border-left: 2px solid #3498db; } 
+        .flight-table tr:hover td { background: #2c3e50; }
+
+        /* 狀態顏色 */
+        .status-delayed { color: #e74c3c; font-weight: bold; }
+        .status-ontime { color: #2ecc71; }
+        .status-boarding { color: #f1c40f; animation: pulse 1s infinite alternate; }
+        .status-departed { color: #7f8c8d; }
+        
+        .remark-text { font-size: 0.85rem; color: #bdc3c7; }
+
+        @keyframes pulse {
+            from { text-shadow: 0 0 2px #f1c40f; opacity: 1; }
+            to { text-shadow: 0 0 8px #f1c40f; opacity: 0.7; }
+        }
+
+        /* --- 任務區 --- */
+        .mission-area {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px dashed #34495e;
+        }
+
+        #physics-container {
+            position: relative;
+            width: 100%;
+            height: 300px; 
+            margin: 0 auto 20px auto;
+            overflow: hidden;
+            border-radius: 8px;
+            background: radial-gradient(circle at center, rgba(52, 152, 219, 0.05) 0%, transparent 70%);
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: crosshair;
+        }
+
+        .badge-wrapper {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            will-change: transform;
+        }
+
+        .badge-orb {
+            width: 100%;
+            height: 100%;
+            background-image: url('SJPNG.png');
+            background-size: 200% 200%;
+            border-radius: 50%;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 5px 5px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .badge-orb::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent 50%);
+        }
+
+        .b1 { background-position: 0 0; }
+        .b2 { background-position: 100% 0; }
+        .b3 { background-position: 0 100%; }
+        .b4 { background-position: 100% 100%; }
+
+        .speech-bubble {
+            position: absolute;
+            bottom: 110%; 
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: #fff;
+            color: #2c3e50;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            width: 140px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 5;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
+        }
+
+        .speech-bubble.show {
+            transform: translateX(-50%) scale(1);
+        }
+
+        .mission-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* --- 長按掃描特效 (Task 02 專用) --- */
+        #scan-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .scan-progress-bar {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 0%; height: 100%;
+            background: rgba(231, 76, 60, 0.2);
+            border-right: 2px solid #e74c3c;
+            box-shadow: 0 0 20px #e74c3c;
+            transition: width 0.1s linear;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .fingerprint-zone {
+            width: 40px; height: 40px;
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 50%;
+            margin-bottom: 5px;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .fingerprint-zone::after {
+            content: '';
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+            animation: pulse-finger 2s infinite;
+        }
+
+        @keyframes pulse-finger {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.6; }
+            100% { transform: scale(0.8); opacity: 0.3; }
+        }
+
+        .shaking { animation: shake 0.5s infinite; }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .scan-success { animation: flashSuccess 0.5s forwards; }
+
+        @keyframes flashSuccess {
+            0% { background-color: #fff; box-shadow: 0 0 50px #fff; }
+            100% { background-color: #2c3e50; border-color: #2ecc71; color: #2ecc71; }
+        }
+
+        /* --- 彈出視窗 (Modal) 下拉式 & 固定位置 --- */
+        #modal-overlay {
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            background: rgba(11, 13, 15, 0.85);
+            z-index: 9999;
+            display: none; 
+            justify-content: center; 
+            align-items: flex-start; 
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s;
+            padding-top: 12vh; 
+            box-sizing: border-box;
+            border-radius: 30px; 
+        }
+
+        #modal-box {
+            background: linear-gradient(180deg, #1e272e 0%, #15191d 100%);
+            border: 1px solid #f1c40f;
+            border-top: 4px solid #f1c40f;
+            padding: 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 500px;
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.9), 
+                0 0 30px rgba(241, 196, 15, 0.15);
+            
+            transform-origin: top center;
+            transform: perspective(1000px) rotateX(-90deg) translateY(-50px);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        #modal-img {
+            max-width: 100%;
+            height: auto;
+            max-height: 50vh;
+            border: 1px solid #444;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .dm-instruction {
+            color: #f1c40f;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #f1c40f;
+            padding-bottom: 10px;
+            display: block;
+            width: 100%;
+            letter-spacing: 1px;
+        }
+
+        #modal-close {
+            background: transparent;
+            color: #bdc3c7;
+            border: 1px solid #bdc3c7;
+            padding: 8px 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #modal-close:hover { 
+            background: #e74c3c; 
+            color: #fff; 
+            border-color: #e74c3c;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+        }
+
+        #modal-overlay.active { display: flex; opacity: 1; }
+        #modal-overlay.active #modal-box { 
+            transform: perspective(1000px) rotateX(0deg) translateY(0); 
+            opacity: 1; 
+        }
+
+        .info-box {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .nav-btn {
+            display: block;
+            margin-top: 15px;
+            padding: 15px 20px;
+            background-color: #2c3e50;
+            color: #e74c3c;
+            text-decoration: none;
+            border: 1px solid #e74c3c;
+            border-left: 4px solid #e74c3c;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .nav-btn:hover {
+            background-color: #e74c3c;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+        }
+
+        /* 地圖區塊 */
+        .map-container {
+            position: relative;
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #555;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        .map-img { width: 100%; display: block; }
+        .map-marker-group {
+            position: absolute;
+            left: 55%; top: 30.5%;
+            transform: translate(-50%, -100%);
+            display: flex; flex-direction: column; align-items: center;
+            animation: bounce 1s infinite;
+            z-index: 5; pointer-events: none;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+        }
+        .marker-text {
+            background: #e74c3c; color: white;
+            padding: 4px 8px; border-radius: 2px;
+            font-size: 0.8rem; font-weight: bold;
+            margin-bottom: 2px; white-space: nowrap;
+        }
+        .marker-arrow {
+            width: 0; height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 16px solid #e74c3c;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -100%); }
+            50% { transform: translate(-50%, -130%); }
+        }
+        .magnifier {
+            position: absolute;
+            border: 2px solid #e74c3c; border-radius: 50%;
+            width: 350px; height: 350px;
+            display: none; z-index: 10;
+            background-repeat: no-repeat; background-color: #222;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            pointer-events: none; overflow: hidden;
+        }
+        .magnifier-marker-group {
+            position: absolute;
+            display: flex; flex-direction: column; align-items: center;
+            transform: translate(-50%, -100%);
+            scale: 1.2; transform-origin: bottom center;
+        }
+
+        .screen-controls { margin-top: 30px; display: flex; justify-content: center; }
+        #back-btn {
+            background: #1e272e; color: #bdc3c7;
+            border: 1px solid #34495e; padding: 15px 50px;
+            font-size: 0.9rem; cursor: pointer;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.2s; text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #back-btn:hover {
+            color: #fff; border-color: #3498db;
+            background: #2c3e50; box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+        }
+
+        /* 浮動按鈕 */
+        .circle-btn {
+            position: fixed; 
+            bottom: 30px; 
+            z-index: 99999; 
+            background: rgba(30, 39, 46, 0.9); 
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 30px; 
+            padding: 12px 25px;
+            cursor: pointer; 
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px); 
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .circle-btn:active { transform: scale(0.95); }
+        .circle-btn:hover { background: #3498db; border-color: #3498db; }
+        #switch-btn { left: 20px; }
+        #audio-btn { right: 20px; }
+
+        @media (max-width: 768px) {
+            #window-frame { object-position: center; }
+            #quote-container { width: auto; max-width: 260px; padding: 0; }
+            .quote-text { font-size: 0.95rem; line-height: 1.6; margin-bottom: 12px; }
+            .quote-source { font-size: 0.8rem; padding-top: 8px; max-width: 100%; white-space: normal; word-wrap: break-word; }
+            .seat-frame { width: 100%; height: 100%; border-radius: 0; padding: 0; border: none; box-shadow: none; }
+            .screen-display { border: none; border-radius: 0; padding-bottom: 120px; }
+            .magnifier { width: 220px; height: 220px; }
+            
+            /* 修改點1：手機板將按鈕容器改為直向排列 */
+            .discount-container { 
+                flex-direction: column; 
+            }
+            /* 修改點1：讓所有按鈕在手機板都佔滿寬度 */
+            .neon-btn { 
+                width: 100%; 
+                min-width: 0; /* 防止 flex 項目溢出 */
+                margin-bottom: 10px; /* 增加按鈕之間的間距 */
+            }
+            .neon-btn:last-child {
+                margin-bottom: 0;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="loading-layer">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">SYSTEM INITIALIZING...</div>
-    </div>
-
-    <div id="view-window">
-        <div class="panorama-container">
-            <img src="cloud_panorama.jpg" class="cloud-bg" alt="Cloud Panorama">
-        </div>
-        <div id="quote-container">
-            <div class="quote-text" id="q-text"></div>
-            <div class="quote-source" id="q-source"></div>
-        </div>
-        <img id="window-frame" src="window01.png" alt="Airplane Window">
-    </div>
-
-    <div id="seat-screen">
-        <div class="seat-frame">
-            
-            <div class="screen-display">
-                
-                <h1>2026臺北國際書展：人生候機室</h1>
-
-                <div class="neon-box">
-                    <div class="neon-title">基督教出版聯展：請點亮折扣</div>
-                    <div class="discount-container">
-                        <button class="neon-btn blue" onclick="toggleDiscount(this, 1)">
-                            <span>單本登機 79 折</span>
-                            <div class="btn-status">STANDBY</div>
-                        </button>
-                        <button class="neon-btn red" onclick="toggleDiscount(this, 2)">
-                            <span>三本升艙 75 折</span>
-                            <div class="btn-status">STANDBY</div>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="info-box">
-                    <h2>航班即時動態</h2>
-                    <div style="margin-bottom: 20px;" class="discount-container">
-                        <a href="https://www.facebook.com/share/1CG7mMQts3/" target="_blank" class="neon-btn green" style="width: 100%;">
-                            <span>最新活動資訊</span>
-                            <div class="btn-status">點擊前往臉書活動專頁</div>
-                        </a>
-                    </div>
-                    
-                    <div class="flight-board-container">
-                        <table class="flight-table">
-                            <thead>
-                                <tr>
-                                    <th>TIME</th>
-                                    <th>AIRLINE</th>
-                                    <th>FLIGHT</th>
-                                    <th>DESTINATION / REMARKS</th>
-                                    <th>STATUS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="flight-body">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="info-box">
-                    <h2>人生候機室 CHECK LIST</h2>
-                    <div class="mission-area">
-                        <div id="physics-container">
-                            <div class="badge-wrapper">
-                                <div class="badge-orb b1"></div>
-                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
-                            </div>
-                            <div class="badge-wrapper">
-                                <div class="badge-orb b2"></div>
-                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
-                            </div>
-                            <div class="badge-wrapper">
-                                <div class="badge-orb b3"></div>
-                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
-                            </div>
-                            <div class="badge-wrapper">
-                                <div class="badge-orb b4"></div>
-                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mission-buttons discount-container">
-                            <a href="https://forms.gle/6QDEgxFwhBdJSkjz5" target="_blank" class="neon-btn blue">
-                                <span>任務01：進入前請先填寫入境卡</span>
-                                <div class="btn-status">CLICK TO OPEN</div>
-                            </a>
-                            
-                            <div id="scan-btn" class="neon-btn red" style="cursor: pointer;"
-                                 onmousedown="startScan(this)" ontouchstart="startScan(this)" 
-                                 onmouseup="stopScan(this)" ontouchend="stopScan(this)" 
-                                 onmouseleave="stopScan(this)">
-                                
-                                <div class="scan-progress-bar" id="scan-bar"></div>
-                                
-                                <div style="position: relative; z-index: 2; display:flex; flex-direction:column; align-items:center;">
-                                    <div class="fingerprint-zone" id="finger-icon"></div>
-                                    <span id="scan-text">任務02：長按解鎖集章護照</span>
-                                    <div class="btn-status" id="scan-status">HOLD TO SCAN</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-<div class="info-box" style="padding: 10px; border-left: 4px solid #e74c3c;">
-    <h2 style="margin: 15px 0 15px 15px;">展覽航班時刻表</h2>
-    
-    <div class="mobile-tab-controls">
-        <button id="tab-btn-1" class="tab-btn active" onclick="switchTab(1)">SCHEDULE</button>
-        <button id="tab-btn-2" class="tab-btn" onclick="switchTab(2)">STATUS / OFFERS</button>
-    </div>
-
-    <div class="flight-board-container" style="padding-bottom: 5px;">
-        <table class="flight-table page-1" id="flight-table-display">
-            <thead>
-                <tr>
-                    <th class="col-date">DATE</th>
-                    <th class="col-time">TIME</th>
-                    <th class="col-event">FLIGHT / EVENT</th>
-                    <th class="col-offer">OFFER / REMARKS</th>
-                    <th class="col-status">STATUS</th>
-                </tr>
-            </thead>
-            <tbody id="exhibition-schedule-body">
-                </tbody>
-        </table>
-        
-        <div class="marquee-container">
-            <div class="marquee-content">
-                 ★ 平日購票好康（2/3 - 2/6）平日購票入場者，驗票時可領取「門票全額抵用金券」。(入場後不補發，限領券當日使用，須全額抵用、不找零)      ★ 星光夜 (2/6-2/7) 開放至 22:00，享受夜間閱讀航程。
-            </div>
-        </div>
-    </div>
-    
-    <div style="margin-top: 15px; padding: 0 15px;">
-         <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn">
-            查詢前往台北世貿一館航廈路線
-        </a>
-    </div>
-</div>
-
-<style>
-    /* --- 基礎表格設定 --- */
-    .flight-table { 
-        width: 100%; 
-        border-collapse: separate; 
-        border-spacing: 0 2px; 
-        color: #ecf0f1; 
-        table-layout: fixed; /* 固定佈局，避免被內容撐壞 */
-    }
-    
-    .flight-table th { 
-        text-align: left; 
-        padding: 10px; 
-        color: #95a5a6; 
-        font-size: 0.8rem; 
-        border-bottom: 1px solid #333; 
-        letter-spacing: 1px;
-        white-space: nowrap; /* 標題不換行 */
-    }
-    
-    .flight-table td { 
-        padding: 10px; 
-        background: #222; 
-        font-size: 0.95rem; 
-        vertical-align: middle; 
-        line-height: 1.4;
-    }
-    
-    /* --- 狀態與標籤樣式 --- */
-    .status-boarding { color: #f1c40f; animation: pulse 1s infinite alternate; font-weight: bold; }
-    .status-delayed { color: #e74c3c; font-weight: bold; }
-    .status-arrived { color: #7f8c8d; opacity: 0.7; }
-    .status-scheduled { color: #3498db; letter-spacing: 1px; }
-    
-    /* ★ 黃色標籤優化 (關鍵修改) */
-    .voucher-tag { 
-        display: inline-block; 
-        background: #f1c40f; 
-        color: #000; 
-        padding: 3px 5px; /* 電腦版 padding 加大一點 */
-        border-radius: 4px; 
-        font-size: 0.85rem; 
-        font-weight: bold; 
-        white-space: nowrap; /* ★ 強制不換行，解決擠壓問題 */
-        margin-bottom: 2px;
-        box-shadow: 0 0 5px rgba(241, 196, 15, 0.4);
-    }
-    
-    .note-text { font-size: 0.75rem; color: #9b59b6; margin-top: 4px; display: block; }
-    
-    /* --- 跑馬燈 --- */
-    .marquee-container { width: 100%; background: #000; color: #f1c40f; border-top: 2px solid #34495e; overflow: hidden; white-space: nowrap; padding: 6px 0; margin-top: 2px; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; position: relative; }
-    .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; }
-    @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-
-    /* --- 分頁按鈕樣式 (預設隱藏) --- */
-    .mobile-tab-controls { display: none; gap: 0; margin-bottom: 0; padding: 0; border-bottom: 2px solid #34495e; }
-    .tab-btn { flex: 1; background: #15191d; border: none; border-right: 1px solid #333; color: #7f8c8d; padding: 10px 0; font-weight: bold; cursor: pointer; font-family: 'Share Tech Mono'; font-size: 0.9rem; letter-spacing: 1px; transition: all 0.2s; }
-    .tab-btn:last-child { border-right: none; }
-    .tab-btn.active { background: #2c3e50; color: #3498db; box-shadow: inset 0 -3px 0 #3498db; }
-
-    /* =========================================
-       電腦版設定 (大畫面)
-       ========================================= */
-    @media (min-width: 769px) {
-        /* 強制顯示所有欄位 */
-        .col-time, .col-event, .col-offer, .col-status { display: table-cell !important; }
-        
-        /* 電腦版欄位寬度分配 (總和 100%) */
-        .col-date   { width: 12%; }
-        .col-time   { width: 18%; }
-        .col-event  { width: 30%; }
-        .col-offer  { width: 25%; } /* 給優惠欄位足夠寬度 */
-        .col-status { width: 15%; }
-    }
-
-    /* =========================================
-       手機版設定 (RWD 分頁邏輯)
-       ========================================= */
-    @media (max-width: 768px) {
-        .mobile-tab-controls { display: flex !important; }
-        
-        /* 字體微調縮小 */
-        .flight-table td { padding: 8px 5px; font-size: 0.9rem; }
-        .voucher-tag { font-size: 0.7rem; padding: 2px 3px; } /* 手機版標籤稍微縮小 */
-
-        /* Page 1 (預設)：顯示 Date, Time, Event */
-        .flight-table.page-1 .col-offer, 
-        .flight-table.page-1 .col-status { display: none; }
-        
-        .flight-table.page-1 .col-time, 
-        .flight-table.page-1 .col-event { display: table-cell; }
-
-        /* Page 2 (狀態/優惠)：顯示 Date, Offer, Status */
-        .flight-table.page-2 .col-time, 
-        .flight-table.page-2 .col-event { display: none; }
-        
-        .flight-table.page-2 .col-offer, 
-        .flight-table.page-2 .col-status { display: table-cell; }
-        
-        /* 手機版欄位寬度分配 */
-        .col-date { width: 25%; font-weight: bold; color: #fff; } /* 固定欄位 */
-        
-        /* 分頁欄位寬度 */
-        .flight-table.page-1 .col-time  { width: 30%; }
-        .flight-table.page-1 .col-event { width: 45%; }
-        
-        .flight-table.page-2 .col-offer  { width: 50%; }
-        .flight-table.page-2 .col-status { width: 25%; }
-    }
-</style>
-
-<script>
-    const exhibitionSchedule = [
-        { date: '2026/02/03', day: '週二', time: '10:00-18:00', event: '首航開啟', hasOffer: true },
-        { date: '2026/02/04', day: '週三', time: '10:00-18:00', event: '平日巡航', hasOffer: true },
-        { date: '2026/02/05', day: '週四', time: '10:00-18:00', event: '平日巡航', hasOffer: true },
-        { date: '2026/02/06', day: '週五', time: '10:00-22:00', event: '星光夜航', hasOffer: true },
-        { date: '2026/02/07', day: '週六', time: '10:00-22:00', event: '星光夜航', hasOffer: false },
-        { date: '2026/02/08', day: '週日', time: '10:00-20:00', event: '最終降落', hasOffer: false }
-    ];
-
-    function updateScheduleBoard() {
-        const tbody = document.getElementById('exhibition-schedule-body');
-        if(!tbody) return;
-        tbody.innerHTML = '';
-        const now = new Date(); 
-
-        exhibitionSchedule.forEach(item => {
-            const dateParts = item.date.split('/');
-            const itemDateStart = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), 10, 0, 0);
-            const endHour = parseInt(item.time.split('-')[1].split(':')[0]);
-            const itemDateEnd = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), endHour, 0, 0);
-
-            let statusHtml = '<span class="status-scheduled">SCHEDULED</span>';
-            let rowStyle = '';
-            const oneDay = 1000 * 60 * 60 * 24;
-            const diffTime = itemDateStart - now;
-
-            if (now > itemDateEnd) {
-                statusHtml = '<span class="status-arrived">ARRIVED</span>';
-                rowStyle = 'opacity: 0.5;'; 
-            } else if (now >= itemDateStart && now <= itemDateEnd) {
-                statusHtml = '<span class="status-boarding">ON TIME</span>';
-            } else if (diffTime > 0 && diffTime < oneDay) {
-                statusHtml = '<span class="status-delayed">SOON</span>';
-            }
-
-            let offerHtml = item.hasOffer ? '<span class="voucher-tag">★ 贈抵用金</span>' : '';
-            if (item.event.includes('星光')) {
-                let prefix = offerHtml ? '<br>' : '';
-                offerHtml += `${prefix}<span class="note-text">★ 星光夜</span>`;
-            }
-            if (!offerHtml) offerHtml = '<span style="color:#555;">-</span>';
-
-            const tr = document.createElement('tr');
-            if(rowStyle) tr.style.cssText = rowStyle;
-
-            // 注意：這裡的 class 名稱 (col-date 等) 對應 CSS 的寬度設定
-            tr.innerHTML = `
-                <td class="col-date" style="line-height:1.2;">${dateParts[1]}/${dateParts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
-                <td class="col-time" style="font-family:'Share Tech Mono'">${item.time}</td>
-                <td class="col-event" style="font-weight:bold; color:#fff;">${item.event}</td>
-                <td class="col-offer">${offerHtml}</td>
-                <td class="col-status">${statusHtml}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-    
-    function switchTab(pageNum) {
-        const table = document.getElementById('flight-table-display');
-        const btn1 = document.getElementById('tab-btn-1');
-        const btn2 = document.getElementById('tab-btn-2');
-
-        if (pageNum === 1) {
-            table.classList.remove('page-2');
-            table.classList.add('page-1');
-            btn1.classList.add('active');
-            btn2.classList.remove('active');
-        } else {
-            table.classList.remove('page-1');
-            table.classList.add('page-2');
-            btn1.classList.remove('active');
-            btn2.classList.add('active');
-        }
-    }
-
-    window.addEventListener('load', () => {
-        updateScheduleBoard();
-        const table = document.getElementById('flight-table-display');
-        if(table) table.classList.add('page-1');
-    });
-    setInterval(updateScheduleBoard, 60000);
-</script>
-                </div>
-    </div>
-
-    <div class="info-box">
-                    <h2>人生候機室攤位位置：D720</h2>
-                    <p style="font-size: 0.9rem; color: #bdc3c7;">↓ 點擊地圖放大查看位置</p>
-                    <div class="map-container" id="map-container">
-                        <img src="map.jpg" class="map-img" id="map-img" alt="展覽地圖">
-                        <div class="map-marker-group">
-                            <div class="marker-text">人生候機室</div>
-                            <div class="marker-arrow"></div>
-                        </div>
-                        <div class="magnifier" id="magnifier">
-                            <div class="magnifier-marker-group" id="ghost-marker">
-                                <div class="marker-text">人生候機室</div>
-                                <div class="marker-arrow"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="info-box">
-                    <h2>票務資訊</h2>
-                    <p style="color:#3498db; font-weight:bold; margin-bottom:5px;">單日券</p>
-                    <ul>
-                        <li>全票 (150元)：一般民眾</li>
-                        <li>優待票 (100元)：18歲以上學生、65歲以上長者</li>
-                    </ul>
-                    <p style="font-size:0.9rem; color:#888; margin-bottom:15px;">*星光夜 (2/6-2/8 18:00後) 可購買優待票入場</p>
-                    <p style="color:#e74c3c; font-weight:bold; margin-bottom:5px;">免費入場</p>
-                    <ul>
-                        <li>未滿 18 歲我國學生</li>
-                        <li>身障人士及其陪同者 (第一位免費)</li>
-                        <li>持當日台鐵/高鐵 (桃園以南/宜花東) 票根者</li>
-                    </ul>
-                </div>
-
-                <div class="screen-controls">
-                    <button id="back-btn" onclick="toggleView()">BACK TO WINDOW</button>
-                </div>
-            </div>
-
-            <div id="modal-overlay">
-                <div id="modal-box">
-                    <div class="dm-instruction">請記得來現場找工作人員領取集章！</div>
-                    <img id="modal-img" src="" alt="集章卡預覽">
-                    <button id="modal-close" onclick="closeModal()">CLOSE</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <button id="switch-btn" class="circle-btn" onclick="toggleView()">INFO</button>
-    <button id="audio-btn" class="circle-btn" onclick="toggleAudio()">AUDIO ON</button>
-
-    <audio id="cabin-audio" loop>
-        <source src="AIRPLANE.mp3" type="audio/mpeg">
-    </audio>
-
-    <script>
-        // --- 核心變數 ---
-        const viewWindow = document.getElementById('view-window');
-        const seatScreen = document.getElementById('seat-screen');
-        const switchBtn = document.getElementById('switch-btn');
-        const bgMusic = document.getElementById('cabin-audio');
-        const audioBtn = document.getElementById('audio-btn');
-        const loadingLayer = document.getElementById('loading-layer');
-
-        // --- 讀取畫面控制 (修改點3) ---
-        window.addEventListener('load', () => {
-            // 當所有資源(圖片)讀取完畢後
-            setTimeout(() => {
-                loadingLayer.style.opacity = '0';
-                setTimeout(() => {
-                    loadingLayer.style.display = 'none';
-                }, 800);
-            }, 500); // 至少顯示0.5秒以免閃爍
-        });
-
-        // --- 視角切換 ---
-        function toggleView() {
-            const isWindowView = !viewWindow.classList.contains('slide-out');
-            if (isWindowView) {
-                viewWindow.classList.add('slide-out');
-                seatScreen.classList.add('slide-in');
-                switchBtn.textContent = "VIEW"; 
-            } else {
-                viewWindow.classList.remove('slide-out');
-                seatScreen.classList.remove('slide-in');
-                switchBtn.textContent = "INFO"; 
-            }
-        }
-
-        // --- 音效開關 ---
-        function toggleAudio() {
-            if (bgMusic.paused) {
-                bgMusic.volume = 0.6;
-                bgMusic.play();
-                audioBtn.textContent = "AUDIO OFF";
-            } else {
-                bgMusic.pause();
-                audioBtn.textContent = "AUDIO ON";
-            }
-        }
-
-        // --- 航班動態板 (Split-Flap Simulator) ---
-        const airlines = ['中主航空', '宇宙光航空', '得拉戶航空', '天恩航空', '校園航空', '華宣航空', '腓利門迦密航空'];
-        
-        // 完整的航點與備註資料庫
-        const destinationsData = [
-            { code: 'SP730', name: '聖靈風之谷', remarks: ['預測氣流平穩', '順風飛行中', '高度 30000 呎'] },
-            { code: 'KL550', name: '靈命乾旱沙漠', remarks: ['即將穿越聖靈活水雲層', '請補充水分', '氣溫炎熱'] },
-            { code: 'RS510', name: '從頭再來島', remarks: ['準備迎接晨光', '跑道重整完畢', '新航線開啟'] },
-            { code: 'CL316', name: '夢想呼召地', remarks: ['誤點', '請耐心等候', '重新加油中'] },
-            { code: 'FN442', name: '自我懷疑沼澤', remarks: ['航線升高，飛越霧區', '能見度低', '開啟導航燈'] },
-            { code: 'GR508', name: '過度努力邊境', remarks: ['機長廣播：請放下行李，輕裝起飛', '負重過高', '減壓艙開啟'] },
-            { code: 'LV520', name: '愛情海岸公路', remarks: ['天色轉晴中', '適合戀愛', '浪漫氣流接近'] },
-            { code: 'MR412', name: '婚姻修復站', remarks: ['技術性延誤 (施工中)', '跑道維護', '請繫好安全帶'] },
-            { code: 'AM904', name: '倦怠高原', remarks: ['機長已更改航道至「更新之泉」', '尋找綠洲', '緊急降落預備'] },
-            { code: 'FL201', name: '焦慮山谷', remarks: ['機長提醒：請調整呼吸與心的姿態', '亂流解除', '氧氣面罩測試'] },
-            { code: 'SK209', name: '神學書林', remarks: ['氣流高度穩定', '知識含量超載', '智慧之風吹拂'] }
-        ];
-
-        const statuses = [
-            { text: 'ON TIME', class: 'status-ontime' },
-            { text: 'DELAYED', class: 'status-delayed' },
-            { text: 'BOARDING', class: 'status-boarding' },
-            { text: 'GATE OPEN', class: 'status-ontime' },
-            { text: 'FINAL CALL', class: 'status-delayed' }
-        ];
-
-        function generateFlightBoard() {
-            const tbody = document.getElementById('flight-body');
-            tbody.innerHTML = ''; 
-            
-            const now = new Date();
-            // 隨機選出 6-8 個航班
-            const shuffledDestinations = [...destinationsData].sort(() => 0.5 - Math.random()).slice(0, 7);
-
-            shuffledDestinations.forEach((dest, index) => {
-                const row = document.createElement('tr');
-                
-                // 時間邏輯：隨時間推移
-                const flightTime = new Date(now.getTime() + (index * 20 + Math.random() * 10) * 60000);
-                const hours = flightTime.getHours().toString().padStart(2, '0');
-                const minutes = flightTime.getMinutes().toString().padStart(2, '0');
-                const timeStr = `${hours}:${minutes}`;
-
-                const airline = airlines[Math.floor(Math.random() * airlines.length)];
-                
-                // 狀態邏輯
-                let statusObj;
-                if (dest.code === 'CL316' || dest.code === 'MR412') {
-                    statusObj = { text: 'DELAYED', class: 'status-delayed' };
-                } else {
-                    statusObj = statuses[Math.floor(Math.random() * statuses.length)];
-                }
-
-                // 備註邏輯
-                const remark = dest.remarks[Math.floor(Math.random() * dest.remarks.length)];
-
-                row.innerHTML = `
-                    <td><span class="scramble">${timeStr}</span></td>
-                    <td><span class="scramble">${airline}</span></td>
-                    <td><span class="scramble">${dest.code}</span></td>
-                    <td>
-                        <span class="scramble" style="font-weight:bold; color:#fff;">${dest.name}</span><br>
-                        <span class="remark-text scramble">${remark}</span>
-                    </td>
-                    <td class="${statusObj.class}"><span class="scramble">${statusObj.text}</span></td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            // 啟動翻牌特效
-            scrambleText();
-        }
-
-        // 翻牌特效
-        function scrambleText() {
-            const targets = document.querySelectorAll('.scramble');
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789中主耶穌聖靈恩典';
-            
-            targets.forEach(el => {
-                const originalText = el.innerText;
-                let iterations = 0;
-                const speed = 30 + Math.random() * 20; 
-
-                const interval = setInterval(() => {
-                    el.innerText = el.innerText.split('').map((letter, index) => {
-                        if(index < iterations) {
-                            return originalText[index];
-                        }
-                        return chars[Math.floor(Math.random() * chars.length)];
-                    }).join('');
-                    
-                    if(iterations >= originalText.length) { 
-                        clearInterval(interval);
-                        el.innerText = originalText;
-                    }
-                    iterations += originalText.match(/[\u4e00-\u9fa5]/) ? 1/5 : 1/3; 
-                }, speed);
-            });
-        }
-
-        // 每 30 秒自動更新航班表
-        setInterval(generateFlightBoard, 30000);
-
-        // --- 零重力物理引擎 ---
-        const physicsContainer = document.getElementById('physics-container');
-        const badges = document.querySelectorAll('.badge-wrapper');
-        
-        const physicsData = Array.from(badges).map(() => ({
-            x: Math.random() * 200, 
-            y: Math.random() * 100,
-            vx: (Math.random() - 0.5) * 0.8,
-            vy: (Math.random() - 0.5) * 0.8
-        }));
-
-        let mouseX = -1000, mouseY = -1000;
-
-        if(physicsContainer) {
-            physicsContainer.addEventListener('mousemove', (e) => {
-                const rect = physicsContainer.getBoundingClientRect();
-                mouseX = e.clientX - rect.left;
-                mouseY = e.clientY - rect.top;
-            });
-            physicsContainer.addEventListener('mouseleave', () => {
-                mouseX = -1000; mouseY = -1000;
-            });
-        }
-
-        function updatePhysics() {
-            if(!physicsContainer) return;
-            const width = physicsContainer.offsetWidth;
-            const height = physicsContainer.offsetHeight;
-            const orbSize = 100;
-
-            badges.forEach((badge, index) => {
-                let p = physicsData[index];
-                p.x += p.vx;
-                p.y += p.vy;
-
-                if (p.x <= 0 || p.x >= width - orbSize) p.vx *= -1;
-                if (p.y <= 0 || p.y >= height - orbSize) p.vy *= -1;
-
-                p.x = Math.max(0, Math.min(p.x, width - orbSize));
-                p.y = Math.max(0, Math.min(p.y, height - orbSize));
-
-                const centerX = p.x + orbSize / 2;
-                const centerY = p.y + orbSize / 2;
-                const dx = centerX - mouseX;
-                const dy = centerY - mouseY;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const repelRange = 150; 
-
-                if (dist < repelRange) {
-                    const angle = Math.atan2(dy, dx);
-                    const force = (repelRange - dist) / 20; 
-                    p.vx += Math.cos(angle) * force;
-                    p.vy += Math.sin(angle) * force;
-                }
-
-                p.vx *= 0.99; 
-                p.vy *= 0.99;
-
-                if (Math.abs(p.vx) < 0.2) p.vx += (Math.random() - 0.5) * 0.05;
-                if (Math.abs(p.vy) < 0.2) p.vy += (Math.random() - 0.5) * 0.05;
-
-                badge.style.transform = `translate(${p.x}px, ${p.y}px)`;
-                
-                const orb = badge.querySelector('.badge-orb');
-                const shadowX = (p.x - width/2) / 20;
-                const shadowY = (p.y - height/2) / 20;
-                orb.style.boxShadow = `${-shadowX}px ${-shadowY}px 15px rgba(0,0,0,0.5)`;
-            });
-            requestAnimationFrame(updatePhysics);
-        }
-
-        // --- 會說話的胸章 ---
-        function startTalkingBadges() {
-            setInterval(() => {
-                const allBubbles = document.querySelectorAll('.speech-bubble');
-                allBubbles.forEach(b => b.classList.remove('show'));
-
-                const randomIndex = Math.floor(Math.random() * badges.length);
-                const bubble = badges[randomIndex].querySelector('.speech-bubble');
-                
-                if(Math.random() > 0.3) {
-                    bubble.classList.add('show');
-                    setTimeout(() => {
-                        bubble.classList.remove('show');
-                    }, 3000);
-                }
-            }, 4000);
-        }
-
-        // --- 折扣/按鈕特效 ---
-        function toggleDiscount(btn, type) {
-            btn.classList.add('start-anim');
-            setTimeout(() => {
-                btn.classList.remove('start-anim');
-            }, 600);
-
-            const statusDiv = btn.querySelector('.btn-status');
-            // FB按鈕不需切換文字
-            if (type === 3) return; 
-
-            if (btn.classList.contains('active')) {
-                btn.classList.remove('active');
-                statusDiv.textContent = "STANDBY";
-            } else {
-                btn.classList.add('active');
-                if(type === 1) {
-                    statusDiv.textContent = "買一本書展開輕旅行，隨時出發!";
-                } else if(type === 2) {
-                    statusDiv.textContent = "買三本書大升等，深度探索！";
-                }
-            }
-        }
-
-        // --- 任務二：長按解鎖邏輯 ---
-        let scanTimer = null;
-        let scanProgress = 0;
-        let scanInterval = null;
-        const SCAN_DURATION = 3000; // 3 秒
-        const scanBtn = document.getElementById('scan-btn');
-        const scanBar = document.getElementById('scan-bar');
-        const scanText = document.getElementById('scan-text');
-        const scanStatus = document.getElementById('scan-status');
-        const fingerIcon = document.getElementById('finger-icon');
-
-        function startScan(btn) {
-            if (scanTimer) return;
-            
-            btn.classList.add('shaking'); 
-            btn.classList.add('active');
-            scanStatus.style.color = "#fff";
-            
-            let startTime = Date.now();
-
-            scanInterval = setInterval(() => {
-                let elapsed = Date.now() - startTime;
-                let percent = Math.min((elapsed / SCAN_DURATION) * 100, 100);
-                
-                scanBar.style.width = percent + "%";
-                
-                let remaining = Math.ceil((SCAN_DURATION - elapsed) / 1000);
-                scanStatus.innerText = `VERIFYING IDENTITY... ${remaining}`;
-                scanStatus.style.color = "#e74c3c";
-
-                if (elapsed % 100 < 50) {
-                    scanText.innerText = "ACCESSING CLASSIFIED DATA...";
-                } else {
-                    scanText.innerText = "DECRYPTING... " + Math.floor(Math.random()*9999);
-                }
-
-                if (elapsed >= SCAN_DURATION) {
-                    completeScan(btn);
-                }
-            }, 30);
-        }
-
-        function stopScan(btn) {
-            if (scanInterval) {
-                clearInterval(scanInterval);
-                scanInterval = null;
-                
-                btn.classList.remove('shaking');
-                btn.classList.remove('active');
-                scanBar.style.width = "0%";
-                scanText.innerText = "任務02：長按解鎖集章護照";
-                scanStatus.innerText = "SCAN FAILED - TRY AGAIN";
-                scanStatus.style.color = "inherit";
-                
-                setTimeout(() => {
-                    if(!scanInterval) scanStatus.innerText = "HOLD TO SCAN";
-                }, 1000);
-            }
-        }
-
-        function completeScan(btn) {
-            clearInterval(scanInterval);
-            scanInterval = null;
-
-            btn.classList.remove('shaking');
-            btn.classList.add('scan-success'); 
-            
-            scanBar.style.width = "100%";
-            scanBar.style.background = "#2ecc71";
-            scanText.innerText = "ACCESS GRANTED";
-            scanStatus.innerText = "PASSPORT UNLOCKED";
-            
-            fingerIcon.style.borderColor = "#2ecc71";
-            
-            setTimeout(() => {
-                showStamp(); // 呼叫彈窗
-                
-                // 重置按鈕
-                setTimeout(() => {
-                    btn.classList.remove('scan-success');
-                    btn.classList.remove('active');
-                    scanBar.style.width = "0%";
-                    scanBar.style.background = "rgba(231, 76, 60, 0.2)";
-                    scanText.innerText = "任務02：長按解鎖集章護照";
-                    scanStatus.innerText = "HOLD TO SCAN";
-                    fingerIcon.style.borderColor = "rgba(255,255,255,0.3)";
-                    scanStatus.style.color = "inherit";
-                }, 2000);
-            }, 500);
-        }
-
-        // --- DM/集章 彈窗 ---
-        const modalOverlay = document.getElementById('modal-overlay');
-        const modalImg = document.getElementById('modal-img');
-
-        function showStamp() {
-            modalImg.src = 'stamp_card.jpg'; 
-            modalOverlay.classList.add('active');
-        }
-
-        function closeModal() {
-            modalOverlay.classList.remove('active');
-        }
-
-        // --- 金句輪播 ---
-        const rawQuotes = [
-            { text: "一看就懂的幽默插畫，輕鬆理解經典寓言。", source: "《天路客的冒險之旅：<br>天路歷程彩繪插畫版》" },
-            { text: "不管那件事，在你眼中有多糟糕，如果你真正認罪悔改，那麼神就真的饒恕你。", source: "《擁抱七十個七次》" },
-            { text: "加上恩典，減去驕傲；乘上信心，除去罪惡。", source: "《天國數學的學思行》" },
-            { text: "古時的聲音，今日的話語。", source: "《閱讀以賽亞書》" },
-            { text: "在破碎裡醫治開始萌芽，那是一段從絕望，走向恩典的旅程。", source: "《還好，我得了憂鬱症》" },
-            { text: "如何透過聖經教導與祈禱，面對孩子學習上的種種挑戰。", source: "《走在恩典中》" },
-            { text: "你的身分，就是為上帝的時刻而預備！。", source: "《筵席攻略：上帝藏在細節裡》" },
-            { text: "我們分裂的原因，通常不是神學上的歧見，而是缺乏關係所致。", source: "《你的愛，夠不夠我們合一？》" },
-            { text: "我除了禱告，我無法做任何事；我只能持續地禱告。", source: "《為孩子屬靈品格禱告》" },
-            { text: "走出恐懼與捆綁，找回在基督裡的醫治與盼望。", source: "《識別屬靈虐待》" },
-            { text: "青春是一段，問題比答案還多的旅程。", source: "《青春溫柔以對》" },
-            { text: "信心，是相信神能做；身分，是相信神能藉由你來做。", source: "《大衛就知道他是王》" },
-            { text: "為何看似敬虔的基督徒，會在情慾中迷失？。", source: "《好人為何淪陷？<br>誘惑世界中的正直之道》" },
-            { text: "乘著愛而來，你是世界最珍貴的初見。", source: "《歡迎親愛小寶貝》" },
-            { text: "候機室裡，愛是最美目的地。", source: "《愛之語：永遠相愛的祕訣》" },
-            { text: "旅程百日，與神同行起飛。", source: "《100天與神同行》" },
-            { text: "培養敬虔的品格，是我們作為領袖最大的挑戰。", source: "《領袖的養成》" },
-            { text: "專注於自己的使命感，活出你的獨特與美好。", source: "《你需要的是剛強，而不是逞強》" },
-            { text: "從巴比倫之囚到羅馬鐵蹄，猶太民族的血與火鑄就史詩！。", source: "《猶太戰爭史》" },
-            { text: "從加利利海到耶路撒冷，縮短你與經文的最後一哩路。", source: "《聖經人文史地》" },
-            { text: "毫無隱藏意味著透明，敞開與真實，是親密關係中信任的基礎。", source: "《我們與相愛的距離》" },
-            { text: "透過十個任務，讓孩子在探索中遇見天父。", source: "《孩子的創世任務》" },
-            { text: "透過大量藝術名作與歷史剖析，看見新約聖經如何形塑人類文明的色彩。", source: "《新約導論》" },
-            { text: "透過字彙與文法的精準剖析，在不同年代的譯本中，尋回失落的精髓。", source: "《原文嚼字—52週漫談》" },
-            { text: "開啟屬靈的內室，與神相遇，在祂永恆的愛中尋得安慰。", source: "《媽媽的禱告事》" },
-            { text: "敬拜不是一些形式，而是心中想要與神同在一起的那份深深的渴望。", source: "《與神夢想無限可能》" },
-            { text: "當心靈的眼睛注視內在和永恆的事，惟有如此你才會真正認識禱告。", source: "《當禱告遇見聖靈》" },
-            { text: "當科技主宰生活，你的信仰還在線嗎？。", source: "《連線卻失聯》" },
-            { text: "當挪亞方舟遇上鐵達尼，讓幽默的插畫告訴你，聖經從未與時代脫節。", source: "《世上最動人的故事》" },
-            { text: "聖經裡的戰爭，其實也是人心的戰場。", source: "《舊約聖經中的戰爭》" },
-            { text: "說了阿們，禱告便畫上句號；鮮少懂得停下來，等候聆聽神的回應。", source: "《屬靈操練》" },
-            { text: "撒種和收割之間，總是有延遲。", source: "《生，為夢想》" },
-            { text: "簡樸的婚禮，多雨的國度，碰撞出與主奇妙的邂逅。", source: "《一場婚禮譜出一趟英國行》" },
-            { text: "翻頁之間，真理悄然綻放。", source: "《尋找聖經真理自學手冊》" },
-            { text: "翻開摺頁，讓孩子化身考古家，一窺舊約時代的生活大圖畫。", source: "《走進聖經的時代》" },
-            { text: "讓心安靜下來，練習與永恆輕聲對談。", source: "《禱告的原則》" },
-            { text: "「原意、原則、應用」，三位一體的研經法，精準對焦聖經心臟。", source: "《國際釋經應用系列》" },
-            { text: "心事託付給最溫柔的守護。", source: "《上帝聽見我：孩子的心情禱告故事》" },
-            { text: "寂寞時轉身，祂一直都在。", source: "《上帝是我的好朋友》" },
-            { text: "孩子與上帝的初遇。", source: "《故事聖經：認識上帝的第一本書》" },
-
-        ];
-
-        const textEl = document.getElementById('q-text');
-        const sourceEl = document.getElementById('q-source');
-        const quoteContainer = document.getElementById('quote-container');
-        let quoteCounter = 0;
-
-        function formatText(text) {
-            let formatted = text.replace(/([，；！？。])/g, '<br>');
-            if (formatted.endsWith('<br>')) {
-                formatted = formatted.slice(0, -4);
-            }
-            return formatted;
-        }
-
-        function startQuoteCycle() {
-            showQuote();
-            setInterval(() => {
-                showQuote();
-            }, 8000);
-        }
-
-        function showQuote() {
-            quoteContainer.classList.remove('visible');
-            setTimeout(() => {
-                const quoteIndex = quoteCounter % rawQuotes.length;
-                const quote = rawQuotes[quoteIndex];
-                textEl.innerHTML = formatText(quote.text);
-                sourceEl.innerHTML = quote.source; 
-                sourceEl.style.display = "block";
-                quoteCounter++;
-                quoteContainer.classList.add('visible');
-            }, 1000); 
-        }
-
-        // --- 地圖放大鏡 ---
-        const mapContainer = document.getElementById('map-container');
-        const magnifier = document.getElementById('magnifier');
-        const ghostMarker = document.getElementById('ghost-marker');
-        const ZOOM = 2.5;
-        const MARKER_X_PERCENT = 0.55; 
-        const MARKER_Y_PERCENT = 0.305;
-
-        if (mapContainer && magnifier) {
-            magnifier.style.backgroundImage = `url('map.jpg')`;
-            mapContainer.addEventListener('mousemove', function(e) {
-                magnifier.style.display = 'block';
-                const rect = mapContainer.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const bgWidth = mapContainer.offsetWidth * ZOOM;
-                const bgHeight = mapContainer.offsetHeight * ZOOM;
-                magnifier.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
-
-                const bgX = -(x * ZOOM) + magnifier.offsetWidth / 2;
-                const bgY = -(y * ZOOM) + magnifier.offsetHeight / 2;
-                
-                magnifier.style.backgroundPosition = `${bgX}px ${bgY}px`;
-                magnifier.style.left = `${x - magnifier.offsetWidth / 2}px`;
-                magnifier.style.top = `${y - magnifier.offsetHeight / 2}px`;
-
-                const targetX_on_scaled_map = bgWidth * MARKER_X_PERCENT;
-                const targetY_on_scaled_map = bgHeight * MARKER_Y_PERCENT;
-                const ghostLeft = targetX_on_scaled_map + bgX;
-                const ghostTop = targetY_on_scaled_map + bgY;
-
-                ghostMarker.style.left = `${ghostLeft}px`;
-                ghostMarker.style.top = `${ghostTop}px`;
-            });
-
-            mapContainer.addEventListener('mouseleave', function() {
-                magnifier.style.display = 'none';
-            });
-        }
-
-        // --- 啟動 ---
-        updatePhysics();
-        startTalkingBadges();
-        startQuoteCycle();
-        generateFlightBoard(); 
-
-    </script>
+    <div id="loading-layer">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">SYSTEM INITIALIZING...</div>
+    </div>
+
+    <div id="view-window">
+        <div class="panorama-container">
+            <img src="cloud_panorama.jpg" class="cloud-bg" alt="Cloud Panorama">
+        </div>
+        <div id="quote-container">
+            <div class="quote-text" id="q-text"></div>
+            <div class="quote-source" id="q-source"></div>
+        </div>
+        <img id="window-frame" src="window01.png" alt="Airplane Window">
+    </div>
+
+    <div id="seat-screen">
+        <div class="seat-frame">
+            
+            <div class="screen-display">
+                
+                <h1>2026臺北國際書展：人生候機室</h1>
+
+                <div class="neon-box">
+                    <div class="neon-title">基督教出版聯展：請點亮折扣</div>
+                    <div class="discount-container">
+                        <button class="neon-btn blue" onclick="toggleDiscount(this, 1)">
+                            <span>單本登機 79 折</span>
+                            <div class="btn-status">STANDBY</div>
+                        </button>
+                        <button class="neon-btn red" onclick="toggleDiscount(this, 2)">
+                            <span>三本升艙 75 折</span>
+                            <div class="btn-status">STANDBY</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h2>航班即時動態</h2>
+                    <div style="margin-bottom: 20px;" class="discount-container">
+                        <a href="https://www.facebook.com/share/1CG7mMQts3/" target="_blank" class="neon-btn green" style="width: 100%;">
+                            <span>最新活動資訊</span>
+                            <div class="btn-status">點擊前往臉書活動專頁</div>
+                        </a>
+                    </div>
+                    
+                    <div class="flight-board-container">
+                        <table class="flight-table">
+                            <thead>
+                                <tr>
+                                    <th>TIME</th>
+                                    <th>AIRLINE</th>
+                                    <th>FLIGHT</th>
+                                    <th>DESTINATION / REMARKS</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="flight-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h2>人生候機室 CHECK LIST</h2>
+                    <div class="mission-area">
+                        <div id="physics-container">
+                            <div class="badge-wrapper">
+                                <div class="badge-orb b1"></div>
+                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
+                            </div>
+                            <div class="badge-wrapper">
+                                <div class="badge-orb b2"></div>
+                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
+                            </div>
+                            <div class="badge-wrapper">
+                                <div class="badge-orb b3"></div>
+                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
+                            </div>
+                            <div class="badge-wrapper">
+                                <div class="badge-orb b4"></div>
+                                <div class="speech-bubble">抓不到我嗎？<br>來國際書展現場<br>完成任務免費領取！！</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mission-buttons discount-container">
+                            <a href="https://forms.gle/6QDEgxFwhBdJSkjz5" target="_blank" class="neon-btn blue">
+                                <span>任務01：進入前請先填寫入境卡</span>
+                                <div class="btn-status">CLICK TO OPEN</div>
+                            </a>
+                            
+                            <div id="scan-btn" class="neon-btn red" style="cursor: pointer;"
+                                 onmousedown="startScan(this)" ontouchstart="startScan(this)" 
+                                 onmouseup="stopScan(this)" ontouchend="stopScan(this)" 
+                                 onmouseleave="stopScan(this)">
+                                
+                                <div class="scan-progress-bar" id="scan-bar"></div>
+                                
+                                <div style="position: relative; z-index: 2; display:flex; flex-direction:column; align-items:center;">
+                                    <div class="fingerprint-zone" id="finger-icon"></div>
+                                    <span id="scan-text">任務02：長按解鎖集章護照</span>
+                                    <div class="btn-status" id="scan-status">HOLD TO SCAN</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h2>展覽資訊</h2>
+                    <ul>
+                        <li>時間：2026/2/3(二) - 2/8(日)</li>
+                        <li>地點：台北世界貿易中心 展覽一館</li>
+                        <li>地址：臺北市信義路五段五號1樓</li>
+                    </ul>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn">
+                        查詢還要多久抵達人生候機室
+                    </a>
+                </div>
+
+                <div class="info-box">
+                    <h2>人生候機室攤位位置：D720</h2>
+                    <p style="font-size: 0.9rem; color: #bdc3c7;">↓ 點擊地圖放大查看位置</p>
+                    <div class="map-container" id="map-container">
+                        <img src="map.jpg" class="map-img" id="map-img" alt="展覽地圖">
+                        <div class="map-marker-group">
+                            <div class="marker-text">人生候機室</div>
+                            <div class="marker-arrow"></div>
+                        </div>
+                        <div class="magnifier" id="magnifier">
+                            <div class="magnifier-marker-group" id="ghost-marker">
+                                <div class="marker-text">人生候機室</div>
+                                <div class="marker-arrow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h2>票務資訊</h2>
+                    <p style="color:#3498db; font-weight:bold; margin-bottom:5px;">單日券</p>
+                    <ul>
+                        <li>全票 (150元)：一般民眾</li>
+                        <li>優待票 (100元)：18歲以上學生、65歲以上長者</li>
+                    </ul>
+                    <p style="font-size:0.9rem; color:#888; margin-bottom:15px;">*星光夜 (2/6-2/8 18:00後) 可購買優待票入場</p>
+                    <p style="color:#e74c3c; font-weight:bold; margin-bottom:5px;">免費入場</p>
+                    <ul>
+                        <li>未滿 18 歲我國學生</li>
+                        <li>身障人士及其陪同者 (第一位免費)</li>
+                        <li>持當日台鐵/高鐵 (桃園以南/宜花東) 票根者</li>
+                    </ul>
+                </div>
+
+                <div class="screen-controls">
+                    <button id="back-btn" onclick="toggleView()">BACK TO WINDOW</button>
+                </div>
+            </div>
+
+            <div id="modal-overlay">
+                <div id="modal-box">
+                    <div class="dm-instruction">請記得來現場找工作人員領取集章！</div>
+                    <img id="modal-img" src="" alt="集章卡預覽">
+                    <button id="modal-close" onclick="closeModal()">CLOSE</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <button id="switch-btn" class="circle-btn" onclick="toggleView()">INFO</button>
+    <button id="audio-btn" class="circle-btn" onclick="toggleAudio()">AUDIO ON</button>
+
+    <audio id="cabin-audio" loop>
+        <source src="AIRPLANE.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // --- 核心變數 ---
+        const viewWindow = document.getElementById('view-window');
+        const seatScreen = document.getElementById('seat-screen');
+        const switchBtn = document.getElementById('switch-btn');
+        const bgMusic = document.getElementById('cabin-audio');
+        const audioBtn = document.getElementById('audio-btn');
+        const loadingLayer = document.getElementById('loading-layer');
+
+        // --- 讀取畫面控制 (修改點3) ---
+        window.addEventListener('load', () => {
+            // 當所有資源(圖片)讀取完畢後
+            setTimeout(() => {
+                loadingLayer.style.opacity = '0';
+                setTimeout(() => {
+                    loadingLayer.style.display = 'none';
+                }, 800);
+            }, 500); // 至少顯示0.5秒以免閃爍
+        });
+
+        // --- 視角切換 ---
+        function toggleView() {
+            const isWindowView = !viewWindow.classList.contains('slide-out');
+            if (isWindowView) {
+                viewWindow.classList.add('slide-out');
+                seatScreen.classList.add('slide-in');
+                switchBtn.textContent = "VIEW"; 
+            } else {
+                viewWindow.classList.remove('slide-out');
+                seatScreen.classList.remove('slide-in');
+                switchBtn.textContent = "INFO"; 
+            }
+        }
+
+        // --- 音效開關 ---
+        function toggleAudio() {
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.6;
+                bgMusic.play();
+                audioBtn.textContent = "AUDIO OFF";
+            } else {
+                bgMusic.pause();
+                audioBtn.textContent = "AUDIO ON";
+            }
+        }
+
+        // --- 航班動態板 (Split-Flap Simulator) ---
+        const airlines = ['中主航空', '宇宙光航空', '得拉戶航空', '天恩航空', '校園航空', '華宣航空', '腓利門迦密航空'];
+        
+        // 完整的航點與備註資料庫
+        const destinationsData = [
+            { code: 'SP730', name: '聖靈風之谷', remarks: ['預測氣流平穩', '順風飛行中', '高度 30000 呎'] },
+            { code: 'KL550', name: '靈命乾旱沙漠', remarks: ['即將穿越聖靈活水雲層', '請補充水分', '氣溫炎熱'] },
+            { code: 'RS510', name: '從頭再來島', remarks: ['準備迎接晨光', '跑道重整完畢', '新航線開啟'] },
+            { code: 'CL316', name: '夢想呼召地', remarks: ['誤點', '請耐心等候', '重新加油中'] },
+            { code: 'FN442', name: '自我懷疑沼澤', remarks: ['航線升高，飛越霧區', '能見度低', '開啟導航燈'] },
+            { code: 'GR508', name: '過度努力邊境', remarks: ['機長廣播：請放下行李，輕裝起飛', '負重過高', '減壓艙開啟'] },
+            { code: 'LV520', name: '愛情海岸公路', remarks: ['天色轉晴中', '適合戀愛', '浪漫氣流接近'] },
+            { code: 'MR412', name: '婚姻修復站', remarks: ['技術性延誤 (施工中)', '跑道維護', '請繫好安全帶'] },
+            { code: 'AM904', name: '倦怠高原', remarks: ['機長已更改航道至「更新之泉」', '尋找綠洲', '緊急降落預備'] },
+            { code: 'FL201', name: '焦慮山谷', remarks: ['機長提醒：請調整呼吸與心的姿態', '亂流解除', '氧氣面罩測試'] },
+            { code: 'SK209', name: '神學書林', remarks: ['氣流高度穩定', '知識含量超載', '智慧之風吹拂'] }
+        ];
+
+        const statuses = [
+            { text: 'ON TIME', class: 'status-ontime' },
+            { text: 'DELAYED', class: 'status-delayed' },
+            { text: 'BOARDING', class: 'status-boarding' },
+            { text: 'GATE OPEN', class: 'status-ontime' },
+            { text: 'FINAL CALL', class: 'status-delayed' }
+        ];
+
+        function generateFlightBoard() {
+            const tbody = document.getElementById('flight-body');
+            tbody.innerHTML = ''; 
+            
+            const now = new Date();
+            // 隨機選出 6-8 個航班
+            const shuffledDestinations = [...destinationsData].sort(() => 0.5 - Math.random()).slice(0, 7);
+
+            shuffledDestinations.forEach((dest, index) => {
+                const row = document.createElement('tr');
+                
+                // 時間邏輯：隨時間推移
+                const flightTime = new Date(now.getTime() + (index * 20 + Math.random() * 10) * 60000);
+                const hours = flightTime.getHours().toString().padStart(2, '0');
+                const minutes = flightTime.getMinutes().toString().padStart(2, '0');
+                const timeStr = `${hours}:${minutes}`;
+
+                const airline = airlines[Math.floor(Math.random() * airlines.length)];
+                
+                // 狀態邏輯
+                let statusObj;
+                if (dest.code === 'CL316' || dest.code === 'MR412') {
+                    statusObj = { text: 'DELAYED', class: 'status-delayed' };
+                } else {
+                    statusObj = statuses[Math.floor(Math.random() * statuses.length)];
+                }
+
+                // 備註邏輯
+                const remark = dest.remarks[Math.floor(Math.random() * dest.remarks.length)];
+
+                row.innerHTML = `
+                    <td><span class="scramble">${timeStr}</span></td>
+                    <td><span class="scramble">${airline}</span></td>
+                    <td><span class="scramble">${dest.code}</span></td>
+                    <td>
+                        <span class="scramble" style="font-weight:bold; color:#fff;">${dest.name}</span><br>
+                        <span class="remark-text scramble">${remark}</span>
+                    </td>
+                    <td class="${statusObj.class}"><span class="scramble">${statusObj.text}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // 啟動翻牌特效
+            scrambleText();
+        }
+
+        // 翻牌特效
+        function scrambleText() {
+            const targets = document.querySelectorAll('.scramble');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789中主耶穌聖靈恩典';
+            
+            targets.forEach(el => {
+                const originalText = el.innerText;
+                let iterations = 0;
+                const speed = 30 + Math.random() * 20; 
+
+                const interval = setInterval(() => {
+                    el.innerText = el.innerText.split('').map((letter, index) => {
+                        if(index < iterations) {
+                            return originalText[index];
+                        }
+                        return chars[Math.floor(Math.random() * chars.length)];
+                    }).join('');
+                    
+                    if(iterations >= originalText.length) { 
+                        clearInterval(interval);
+                        el.innerText = originalText;
+                    }
+                    iterations += originalText.match(/[\u4e00-\u9fa5]/) ? 1/5 : 1/3; 
+                }, speed);
+            });
+        }
+
+        // 每 30 秒自動更新航班表
+        setInterval(generateFlightBoard, 30000);
+
+        // --- 零重力物理引擎 ---
+        const physicsContainer = document.getElementById('physics-container');
+        const badges = document.querySelectorAll('.badge-wrapper');
+        
+        const physicsData = Array.from(badges).map(() => ({
+            x: Math.random() * 200, 
+            y: Math.random() * 100,
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: (Math.random() - 0.5) * 0.8
+        }));
+
+        let mouseX = -1000, mouseY = -1000;
+
+        if(physicsContainer) {
+            physicsContainer.addEventListener('mousemove', (e) => {
+                const rect = physicsContainer.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+            });
+            physicsContainer.addEventListener('mouseleave', () => {
+                mouseX = -1000; mouseY = -1000;
+            });
+        }
+
+        function updatePhysics() {
+            if(!physicsContainer) return;
+            const width = physicsContainer.offsetWidth;
+            const height = physicsContainer.offsetHeight;
+            const orbSize = 100;
+
+            badges.forEach((badge, index) => {
+                let p = physicsData[index];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x <= 0 || p.x >= width - orbSize) p.vx *= -1;
+                if (p.y <= 0 || p.y >= height - orbSize) p.vy *= -1;
+
+                p.x = Math.max(0, Math.min(p.x, width - orbSize));
+                p.y = Math.max(0, Math.min(p.y, height - orbSize));
+
+                const centerX = p.x + orbSize / 2;
+                const centerY = p.y + orbSize / 2;
+                const dx = centerX - mouseX;
+                const dy = centerY - mouseY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const repelRange = 150; 
+
+                if (dist < repelRange) {
+                    const angle = Math.atan2(dy, dx);
+                    const force = (repelRange - dist) / 20; 
+                    p.vx += Math.cos(angle) * force;
+                    p.vy += Math.sin(angle) * force;
+                }
+
+                p.vx *= 0.99; 
+                p.vy *= 0.99;
+
+                if (Math.abs(p.vx) < 0.2) p.vx += (Math.random() - 0.5) * 0.05;
+                if (Math.abs(p.vy) < 0.2) p.vy += (Math.random() - 0.5) * 0.05;
+
+                badge.style.transform = `translate(${p.x}px, ${p.y}px)`;
+                
+                const orb = badge.querySelector('.badge-orb');
+                const shadowX = (p.x - width/2) / 20;
+                const shadowY = (p.y - height/2) / 20;
+                orb.style.boxShadow = `${-shadowX}px ${-shadowY}px 15px rgba(0,0,0,0.5)`;
+            });
+            requestAnimationFrame(updatePhysics);
+        }
+
+        // --- 會說話的胸章 ---
+        function startTalkingBadges() {
+            setInterval(() => {
+                const allBubbles = document.querySelectorAll('.speech-bubble');
+                allBubbles.forEach(b => b.classList.remove('show'));
+
+                const randomIndex = Math.floor(Math.random() * badges.length);
+                const bubble = badges[randomIndex].querySelector('.speech-bubble');
+                
+                if(Math.random() > 0.3) {
+                    bubble.classList.add('show');
+                    setTimeout(() => {
+                        bubble.classList.remove('show');
+                    }, 3000);
+                }
+            }, 4000);
+        }
+
+        // --- 折扣/按鈕特效 ---
+        function toggleDiscount(btn, type) {
+            btn.classList.add('start-anim');
+            setTimeout(() => {
+                btn.classList.remove('start-anim');
+            }, 600);
+
+            const statusDiv = btn.querySelector('.btn-status');
+            // FB按鈕不需切換文字
+            if (type === 3) return; 
+
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                statusDiv.textContent = "STANDBY";
+            } else {
+                btn.classList.add('active');
+                if(type === 1) {
+                    statusDiv.textContent = "買一本書展開輕旅行，隨時出發!";
+                } else if(type === 2) {
+                    statusDiv.textContent = "買三本書大升等，深度探索！";
+                }
+            }
+        }
+
+        // --- 任務二：長按解鎖邏輯 ---
+        let scanTimer = null;
+        let scanProgress = 0;
+        let scanInterval = null;
+        const SCAN_DURATION = 3000; // 3 秒
+        const scanBtn = document.getElementById('scan-btn');
+        const scanBar = document.getElementById('scan-bar');
+        const scanText = document.getElementById('scan-text');
+        const scanStatus = document.getElementById('scan-status');
+        const fingerIcon = document.getElementById('finger-icon');
+
+        function startScan(btn) {
+            if (scanTimer) return;
+            
+            btn.classList.add('shaking'); 
+            btn.classList.add('active');
+            scanStatus.style.color = "#fff";
+            
+            let startTime = Date.now();
+
+            scanInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let percent = Math.min((elapsed / SCAN_DURATION) * 100, 100);
+                
+                scanBar.style.width = percent + "%";
+                
+                let remaining = Math.ceil((SCAN_DURATION - elapsed) / 1000);
+                scanStatus.innerText = `VERIFYING IDENTITY... ${remaining}`;
+                scanStatus.style.color = "#e74c3c";
+
+                if (elapsed % 100 < 50) {
+                    scanText.innerText = "ACCESSING CLASSIFIED DATA...";
+                } else {
+                    scanText.innerText = "DECRYPTING... " + Math.floor(Math.random()*9999);
+                }
+
+                if (elapsed >= SCAN_DURATION) {
+                    completeScan(btn);
+                }
+            }, 30);
+        }
+
+        function stopScan(btn) {
+            if (scanInterval) {
+                clearInterval(scanInterval);
+                scanInterval = null;
+                
+                btn.classList.remove('shaking');
+                btn.classList.remove('active');
+                scanBar.style.width = "0%";
+                scanText.innerText = "任務02：長按解鎖集章護照";
+                scanStatus.innerText = "SCAN FAILED - TRY AGAIN";
+                scanStatus.style.color = "inherit";
+                
+                setTimeout(() => {
+                    if(!scanInterval) scanStatus.innerText = "HOLD TO SCAN";
+                }, 1000);
+            }
+        }
+
+        function completeScan(btn) {
+            clearInterval(scanInterval);
+            scanInterval = null;
+
+            btn.classList.remove('shaking');
+            btn.classList.add('scan-success'); 
+            
+            scanBar.style.width = "100%";
+            scanBar.style.background = "#2ecc71";
+            scanText.innerText = "ACCESS GRANTED";
+            scanStatus.innerText = "PASSPORT UNLOCKED";
+            
+            fingerIcon.style.borderColor = "#2ecc71";
+            
+            setTimeout(() => {
+                showStamp(); // 呼叫彈窗
+                
+                // 重置按鈕
+                setTimeout(() => {
+                    btn.classList.remove('scan-success');
+                    btn.classList.remove('active');
+                    scanBar.style.width = "0%";
+                    scanBar.style.background = "rgba(231, 76, 60, 0.2)";
+                    scanText.innerText = "任務02：長按解鎖集章護照";
+                    scanStatus.innerText = "HOLD TO SCAN";
+                    fingerIcon.style.borderColor = "rgba(255,255,255,0.3)";
+                    scanStatus.style.color = "inherit";
+                }, 2000);
+            }, 500);
+        }
+
+        // --- DM/集章 彈窗 ---
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalImg = document.getElementById('modal-img');
+
+        function showStamp() {
+            modalImg.src = 'stamp_card.jpg'; 
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        // --- 金句輪播 ---
+        const rawQuotes = [
+            { text: "一看就懂的幽默插畫，輕鬆理解經典寓言。", source: "《天路客的冒險之旅：<br>天路歷程彩繪插畫版》" },
+            { text: "不管那件事，在你眼中有多糟糕，如果你真正認罪悔改，那麼神就真的饒恕你。", source: "《擁抱七十個七次》" },
+            { text: "加上恩典，減去驕傲；乘上信心，除去罪惡。", source: "《天國數學的學思行》" },
+            { text: "古時的聲音，今日的話語。", source: "《閱讀以賽亞書》" },
+            { text: "在破碎裡醫治開始萌芽，那是一段從絕望，走向恩典的旅程。", source: "《還好，我得了憂鬱症》" },
+            { text: "如何透過聖經教導與祈禱，面對孩子學習上的種種挑戰。", source: "《走在恩典中》" },
+            { text: "你的身分，就是為上帝的時刻而預備！。", source: "《筵席攻略：上帝藏在細節裡》" },
+            { text: "我們分裂的原因，通常不是神學上的歧見，而是缺乏關係所致。", source: "《你的愛，夠不夠我們合一？》" },
+            { text: "我除了禱告，我無法做任何事；我只能持續地禱告。", source: "《為孩子屬靈品格禱告》" },
+            { text: "走出恐懼與捆綁，找回在基督裡的醫治與盼望。", source: "《識別屬靈虐待》" },
+            { text: "青春是一段，問題比答案還多的旅程。", source: "《青春溫柔以對》" },
+            { text: "信心，是相信神能做；身分，是相信神能藉由你來做。", source: "《大衛就知道他是王》" },
+            { text: "為何看似敬虔的基督徒，會在情慾中迷失？。", source: "《好人為何淪陷？<br>誘惑世界中的正直之道》" },
+            { text: "乘著愛而來，你是世界最珍貴的初見。", source: "《歡迎親愛小寶貝》" },
+            { text: "候機室裡，愛是最美目的地。", source: "《愛之語：永遠相愛的祕訣》" },
+            { text: "旅程百日，與神同行起飛。", source: "《100天與神同行》" },
+            { text: "培養敬虔的品格，是我們作為領袖最大的挑戰。", source: "《領袖的養成》" },
+            { text: "專注於自己的使命感，活出你的獨特與美好。", source: "《你需要的是剛強，而不是逞強》" },
+            { text: "從巴比倫之囚到羅馬鐵蹄，猶太民族的血與火鑄就史詩！。", source: "《猶太戰爭史》" },
+            { text: "從加利利海到耶路撒冷，縮短你與經文的最後一哩路。", source: "《聖經人文史地》" },
+            { text: "毫無隱藏意味著透明，敞開與真實，是親密關係中信任的基礎。", source: "《我們與相愛的距離》" },
+            { text: "透過十個任務，讓孩子在探索中遇見天父。", source: "《孩子的創世任務》" },
+            { text: "透過大量藝術名作與歷史剖析，看見新約聖經如何形塑人類文明的色彩。", source: "《新約導論》" },
+            { text: "透過字彙與文法的精準剖析，在不同年代的譯本中，尋回失落的精髓。", source: "《原文嚼字—52週漫談》" },
+            { text: "開啟屬靈的內室，與神相遇，在祂永恆的愛中尋得安慰。", source: "《媽媽的禱告事》" },
+            { text: "敬拜不是一些形式，而是心中想要與神同在一起的那份深深的渴望。", source: "《與神夢想無限可能》" },
+            { text: "當心靈的眼睛注視內在和永恆的事，惟有如此你才會真正認識禱告。", source: "《當禱告遇見聖靈》" },
+            { text: "當科技主宰生活，你的信仰還在線嗎？。", source: "《連線卻失聯》" },
+            { text: "當挪亞方舟遇上鐵達尼，讓幽默的插畫告訴你，聖經從未與時代脫節。", source: "《世上最動人的故事》" },
+            { text: "聖經裡的戰爭，其實也是人心的戰場。", source: "《舊約聖經中的戰爭》" },
+            { text: "說了阿們，禱告便畫上句號；鮮少懂得停下來，等候聆聽神的回應。", source: "《屬靈操練》" },
+            { text: "撒種和收割之間，總是有延遲。", source: "《生，為夢想》" },
+            { text: "簡樸的婚禮，多雨的國度，碰撞出與主奇妙的邂逅。", source: "《一場婚禮譜出一趟英國行》" },
+            { text: "翻頁之間，真理悄然綻放。", source: "《尋找聖經真理自學手冊》" },
+            { text: "翻開摺頁，讓孩子化身考古家，一窺舊約時代的生活大圖畫。", source: "《走進聖經的時代》" },
+            { text: "讓心安靜下來，練習與永恆輕聲對談。", source: "《禱告的原則》" },
+            { text: "「原意、原則、應用」，三位一體的研經法，精準對焦聖經心臟。", source: "《國際釋經應用系列》" },
+            { text: "心事託付給最溫柔的守護。", source: "《上帝聽見我：孩子的心情禱告故事》" },
+            { text: "寂寞時轉身，祂一直都在。", source: "《上帝是我的好朋友》" },
+            { text: "孩子與上帝的初遇。", source: "《故事聖經：認識上帝的第一本書》" },
+
+        ];
+
+        const textEl = document.getElementById('q-text');
+        const sourceEl = document.getElementById('q-source');
+        const quoteContainer = document.getElementById('quote-container');
+        let quoteCounter = 0;
+
+        function formatText(text) {
+            let formatted = text.replace(/([，；！？。])/g, '<br>');
+            if (formatted.endsWith('<br>')) {
+                formatted = formatted.slice(0, -4);
+            }
+            return formatted;
+        }
+
+        function startQuoteCycle() {
+            showQuote();
+            setInterval(() => {
+                showQuote();
+            }, 8000);
+        }
+
+        function showQuote() {
+            quoteContainer.classList.remove('visible');
+            setTimeout(() => {
+                const quoteIndex = quoteCounter % rawQuotes.length;
+                const quote = rawQuotes[quoteIndex];
+                textEl.innerHTML = formatText(quote.text);
+                sourceEl.innerHTML = quote.source; 
+                sourceEl.style.display = "block";
+                quoteCounter++;
+                quoteContainer.classList.add('visible');
+            }, 1000); 
+        }
+
+        // --- 地圖放大鏡 ---
+        const mapContainer = document.getElementById('map-container');
+        const magnifier = document.getElementById('magnifier');
+        const ghostMarker = document.getElementById('ghost-marker');
+        const ZOOM = 2.5;
+        const MARKER_X_PERCENT = 0.55; 
+        const MARKER_Y_PERCENT = 0.305;
+
+        if (mapContainer && magnifier) {
+            magnifier.style.backgroundImage = `url('map.jpg')`;
+            mapContainer.addEventListener('mousemove', function(e) {
+                magnifier.style.display = 'block';
+                const rect = mapContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const bgWidth = mapContainer.offsetWidth * ZOOM;
+                const bgHeight = mapContainer.offsetHeight * ZOOM;
+                magnifier.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+
+                const bgX = -(x * ZOOM) + magnifier.offsetWidth / 2;
+                const bgY = -(y * ZOOM) + magnifier.offsetHeight / 2;
+                
+                magnifier.style.backgroundPosition = `${bgX}px ${bgY}px`;
+                magnifier.style.left = `${x - magnifier.offsetWidth / 2}px`;
+                magnifier.style.top = `${y - magnifier.offsetHeight / 2}px`;
+
+                const targetX_on_scaled_map = bgWidth * MARKER_X_PERCENT;
+                const targetY_on_scaled_map = bgHeight * MARKER_Y_PERCENT;
+                const ghostLeft = targetX_on_scaled_map + bgX;
+                const ghostTop = targetY_on_scaled_map + bgY;
+
+                ghostMarker.style.left = `${ghostLeft}px`;
+                ghostMarker.style.top = `${ghostTop}px`;
+            });
+
+            mapContainer.addEventListener('mouseleave', function() {
+                magnifier.style.display = 'none';
+            });
+        }
+
+        // --- 啟動 ---
+        updatePhysics();
+        startTalkingBadges();
+        startQuoteCycle();
+        generateFlightBoard(); 
+
+    </script>
 </body>
 </html>
