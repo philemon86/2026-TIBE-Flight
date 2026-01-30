@@ -121,7 +121,6 @@
             z-index: 5; 
             text-align: center;
             color: #fff;
-            /* 修改點2：加強文字陰影，確保在白雲背景下也能看清 */
             text-shadow: 
                 0 0 5px rgba(0,0,0,0.9), 
                 0 0 10px rgba(0,0,0,0.8),
@@ -146,7 +145,7 @@
             line-height: 1.8; 
             margin-bottom: 25px;
             font-weight: 700;
-            color: #ffffff; /* 改為純白 */
+            color: #ffffff; 
             letter-spacing: 2px;
             word-wrap: break-word; 
         }
@@ -154,14 +153,14 @@
         .quote-source {
             font-size: 1rem;
             font-weight: 400;
-            color: #ecf0f1; /* 稍微亮一點的灰色 */
+            color: #ecf0f1; 
             display: block; 
             border-top: 1px solid rgba(255,255,255,0.6);
             padding-top: 12px;
             letter-spacing: 1px;
             max-width: 80%;
             margin: 0 auto; 
-            text-shadow: 0 2px 5px rgba(0,0,0,0.9); /* 來源也加陰影 */
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9); 
         }
 
         /* --- 2. 機艙螢幕層 --- */
@@ -318,7 +317,7 @@
             align-items: center;
             justify-content: center;
             text-decoration: none; 
-            box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+            box-sizing: border-box; 
         }
 
         .neon-btn span { position: relative; z-index: 2; }
@@ -962,7 +961,7 @@
         
         <div class="marquee-container">
             <div class="marquee-content">
-                 ★ 平日購票好康（2/3 - 2/6）平日購票入場者，驗票時可領取「門票全額抵用金券」。(入場後不補發，限領券當日使用，須全額抵用、不找零)      ★ 星光夜 (2/6-2/7) 開放至 22:00，享受夜間閱讀航程。
+                 ★ 平日購票好康（2/3 - 2/6）平日購票入場者，驗票時可領取「門票全額抵用金券」。(入場後不補發，限領券當日使用，須全額抵用、不找零)      ★ 星光夜 (2/6-2/7) 開放至 22:00，享受夜間閱讀航程。
             </div>
         </div>
     </div>
@@ -1169,6 +1168,56 @@
     });
     setInterval(updateScheduleBoard, 60000);
 </script>
+                </div>
+    </div>
+
+    <div class="info-box">
+                    <h2>人生候機室攤位位置：D720</h2>
+                    <p style="font-size: 0.9rem; color: #bdc3c7;">↓ 點擊地圖放大查看位置</p>
+                    <div class="map-container" id="map-container">
+                        <img src="map.jpg" class="map-img" id="map-img" alt="展覽地圖">
+                        <div class="map-marker-group">
+                            <div class="marker-text">人生候機室</div>
+                            <div class="marker-arrow"></div>
+                        </div>
+                        <div class="magnifier" id="magnifier">
+                            <div class="magnifier-marker-group" id="ghost-marker">
+                                <div class="marker-text">人生候機室</div>
+                                <div class="marker-arrow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h2>票務資訊</h2>
+                    <p style="color:#3498db; font-weight:bold; margin-bottom:5px;">單日券</p>
+                    <ul>
+                        <li>全票 (150元)：一般民眾</li>
+                        <li>優待票 (100元)：18歲以上學生、65歲以上長者</li>
+                    </ul>
+                    <p style="font-size:0.9rem; color:#888; margin-bottom:15px;">*星光夜 (2/6-2/8 18:00後) 可購買優待票入場</p>
+                    <p style="color:#e74c3c; font-weight:bold; margin-bottom:5px;">免費入場</p>
+                    <ul>
+                        <li>未滿 18 歲我國學生</li>
+                        <li>身障人士及其陪同者 (第一位免費)</li>
+                        <li>持當日台鐵/高鐵 (桃園以南/宜花東) 票根者</li>
+                    </ul>
+                </div>
+
+                <div class="screen-controls">
+                    <button id="back-btn" onclick="toggleView()">BACK TO WINDOW</button>
+                </div>
+            </div>
+
+            <div id="modal-overlay">
+                <div id="modal-box">
+                    <div class="dm-instruction">請記得來現場找工作人員領取集章！</div>
+                    <img id="modal-img" src="" alt="集章卡預覽">
+                    <button id="modal-close" onclick="closeModal()">CLOSE</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1673,9 +1722,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
