@@ -937,7 +937,7 @@
                     </div>
                 </div>
 
-<div class="info-box" style="padding: 10px; border-left: 4px solid #e74c3c;">
+<div class="info-box exhibition-schedule" style="padding: 10px; border-left: 4px solid #e74c3c;">
     <h2 style="margin: 15px 0 15px 15px; text-align: center;">展覽航班時刻表</h2>
     
     <div class="mobile-tab-controls" style="display: none; margin-bottom: 5px; border-bottom: 2px solid #34495e; justify-content: center;">
@@ -967,41 +967,32 @@
         </div>
     </div>
     
-    <div style="margin-top: 15px; padding: 0 15px; text-align: center;">
-         <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn" style="display: inline-block; width: auto; padding: 15px 30px;">
+    <div style="margin-top: 15px; padding: 0 15px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+         <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn" style="width: 100%; max-width: 400px; padding: 15px; box-sizing: border-box;">
             查詢前往台北世貿一館航廈路線
+        </a>
+        
+        <a href="https://www.facebook.com/share/1CG7mMQts3/" target="_blank" class="nav-btn" style="width: 100%; max-width: 400px; padding: 15px; box-sizing: border-box; border-color: #2ecc71; color: #2ecc71; border-left: 4px solid #2ecc71;">
+            最新活動資訊 (Facebook)
         </a>
     </div>
 
     <style>
-        /* 表格通用樣式 */
-        .flight-table th, .flight-table td {
-            padding: 10px 5px;
-            text-align: center;
-            vertical-align: middle;
-            border-bottom: 1px solid #333;
-        }
-        .flight-table th {
-            color: #95a5a6;
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-        }
+        .flight-table th, .flight-table td { padding: 10px 5px; text-align: center; vertical-align: middle; border-bottom: 1px solid #333; }
+        .flight-table th { color: #95a5a6; font-size: 0.85rem; letter-spacing: 1px; }
         .col-fixed { font-weight: bold; color: #fff; }
         .col-time { font-family: 'Share Tech Mono'; color: #bdc3c7; }
 
         @media (max-width: 768px) {
             .mobile-tab-controls { display: flex !important; }
-            /* Page 1 設定 */
             .flight-table.page-1 .col-p2 { display: none !important; }
             .flight-table.page-1 .col-p1 { display: table-cell !important; }
-            /* Page 2 設定 */
             .flight-table.page-2 .col-p1 { display: none !important; }
             .flight-table.page-2 .col-p2 { display: table-cell !important; }
         }
         @media (min-width: 769px) {
             .col-p1, .col-p2 { display: table-cell !important; }
             .mobile-tab-controls { display: none !important; }
-            /* 電腦版寬度微調 */
             .col-time { width: 18% !important; }
             .col-p1 { width: 57% !important; }
         }
@@ -1054,11 +1045,11 @@
                     const tr = document.createElement('tr');
                     tr.style.cssText = trStyle;
                     tr.innerHTML = `
-                        <td class="col-fixed" style="line-height:1.2; font-size:0.9rem; color:#ecf0f1;">${parts[1]}/${parts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
-                        <td class="col-time" style="font-size:0.85rem;">${item.time.replace(':00', '')}</td>
-                        <td class="col-p1" style="font-weight:bold; color:#fff; font-size:0.9rem;">${item.event}</td>
-                        <td class="col-p2" style="display:none; font-size:0.9rem;">${offer}</td>
-                        <td class="col-p2" style="display:none; font-size:0.85rem;">${status}</td>
+                        <td class="col-fixed" style="padding:10px 5px; line-height:1.2; font-size:0.9rem; color:#ecf0f1;">${parts[1]}/${parts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
+                        <td class="col-time" style="padding:10px 5px; font-family:'Share Tech Mono'; font-size:0.85rem; color:#bdc3c7;">${item.time.replace(':00', '')}</td>
+                        <td class="col-p1" style="padding:10px 5px; font-weight:bold; color:#fff; font-size:0.9rem;">${item.event}</td>
+                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.9rem;">${offer}</td>
+                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.85rem;">${status}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1069,10 +1060,8 @@
                 const table = document.getElementById('flight-table-display');
                 const btn1 = document.getElementById('tab-btn-1');
                 const btn2 = document.getElementById('tab-btn-2');
-                
                 table.classList.remove('page-1', 'page-2');
                 table.classList.add('page-' + n);
-                
                 if(n===1) {
                     if(btn1) { btn1.style.background = '#2c3e50'; btn1.style.color = '#3498db'; }
                     if(btn2) { btn2.style.background = '#15191d'; btn2.style.color = '#7f8c8d'; }
@@ -1101,7 +1090,6 @@
         })();
     </script>
 </div>
-
                 <div class="info-box">
                     <h2>人生候機室攤位位置：D720</h2>
                     <p style="font-size: 0.9rem; color: #bdc3c7;">↓ 點擊地圖放大查看位置</p>
@@ -1653,6 +1641,7 @@
     </script>
 </body>
 </html>
+
 
 
 
