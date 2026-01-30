@@ -950,9 +950,9 @@
             <thead>
                 <tr>
                     <th class="col-fixed" style="width:20%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">DATE</th>
-                    <th class="col-p1" style="width:25%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">TIME</th>
-                    <th class="col-p1" style="width:55%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">FLIGHT / EVENT</th>
-                    <th class="col-p2" style="width:55%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333; display:none;">OFFER / REMARKS</th>
+                    <th class="col-time" style="width:20%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">TIME</th>
+                    <th class="col-p1" style="width:60%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">FLIGHT / EVENT</th>
+                    <th class="col-p2" style="width:35%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333; display:none;">OFFER</th>
                     <th class="col-p2" style="width:25%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333; display:none;">STATUS</th>
                 </tr>
             </thead>
@@ -974,26 +974,30 @@
     </div>
 
     <style>
-        /* 手機版：顯示分頁按鈕，隱藏對應欄位 */
         @media (max-width: 768px) {
             .mobile-tab-controls { display: flex !important; }
+            /* Page 1 設定 */
             .flight-table.page-1 .col-p2 { display: none !important; }
             .flight-table.page-1 .col-p1 { display: table-cell !important; }
+            /* Page 2 設定 */
             .flight-table.page-2 .col-p1 { display: none !important; }
             .flight-table.page-2 .col-p2 { display: table-cell !important; }
-            /* 手機版日期欄位加寬 */
-            .col-fixed { width: 25% !important; font-weight: bold; color: #fff; }
+            
+            /* 固定欄位樣式 */
+            .col-fixed { font-weight: bold; color: #fff; }
+            .col-time { font-family: 'Share Tech Mono'; color: #bdc3c7; }
         }
-        /* 電腦版：強制全開 */
         @media (min-width: 769px) {
             .col-p1, .col-p2 { display: table-cell !important; }
             .mobile-tab-controls { display: none !important; }
+            /* 電腦版寬度微調 */
+            .col-time { width: 15% !important; }
         }
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
     </style>
 
     <script>
-        (function() { // 使用立即執行函式避免變數汙染
+        (function() {
             const schedule = [
                 { date: '2026/02/03', day: '週二', time: '10:00-18:00', event: '首航開啟', hasOffer: true },
                 { date: '2026/02/04', day: '週三', time: '10:00-18:00', event: '平日巡航', hasOffer: true },
@@ -1015,60 +1019,52 @@
                     const endH = parseInt(item.time.split('-')[1].split(':')[0]);
                     const end = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), endH, 0);
                     
-                    let status = '<span style="color:#3498db; letter-spacing:1px; font-weight:bold;">SCHEDULED</span>';
+                    let status = '<span style="color:#3498db; letter-spacing:1px; font-weight:bold;">SCH</span>';
                     let trStyle = 'background:#222;';
                     
                     if(now > end) { 
-                        status = '<span style="color:#7f8c8d; opacity:0.7;">ARRIVED</span>'; 
+                        status = '<span style="color:#7f8c8d; opacity:0.7;">END</span>'; 
                         trStyle += ' opacity:0.5;'; 
                     } else if(now >= start) { 
-                        status = '<span style="color:#f1c40f; font-weight:bold; animation:pulse 1s infinite;">ON TIME</span>'; 
+                        status = '<span style="color:#f1c40f; font-weight:bold; animation:pulse 1s infinite;">LIVE</span>'; 
                     } else if((start - now) < 86400000 && (start - now) > 0) { 
                         status = '<span style="color:#e74c3c; font-weight:bold;">SOON</span>'; 
                     }
 
-                    // ★ 強制縮小標籤樣式 (font-size:0.7rem)
                     let offer = item.hasOffer ? 
-                        '<span style="display:inline-block; background:#f1c40f; color:#000; border-radius:2px; font-weight:bold; white-space:nowrap; padding:1px 3px; font-size:0.7rem; line-height:1.2; box-shadow:0 0 5px rgba(241,196,15,0.4);">★ 贈抵用金</span>' : 
+                        '<span style="display:inline-block; background:#f1c40f; color:#000; border-radius:2px; font-weight:bold; white-space:nowrap; padding:1px 3px; font-size:0.65rem; line-height:1.2;">贈抵用金</span>' : 
                         '<span style="color:#555">-</span>';
                     
                     if(item.event.includes('星光')) {
-                        offer += (item.hasOffer ? '<br>' : '') + '<span style="font-size:0.75rem; color:#9b59b6; margin-top:2px; display:block;">★ 星光夜</span>';
+                        offer += (item.hasOffer ? '<br>' : '') + '<span style="font-size:0.65rem; color:#9b59b6; margin-top:1px; display:block;">★星光夜</span>';
                     }
 
                     const tr = document.createElement('tr');
                     tr.style.cssText = trStyle;
                     tr.innerHTML = `
                         <td class="col-fixed" style="padding:10px 5px; line-height:1.2; font-size:0.9rem; color:#ecf0f1;">${parts[1]}/${parts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
-                        <td class="col-p1" style="padding:10px 5px; font-family:'Share Tech Mono'; font-size:0.9rem; color:#bdc3c7;">${item.time}</td>
+                        <td class="col-time" style="padding:10px 5px; font-family:'Share Tech Mono'; font-size:0.85rem; color:#bdc3c7;">${item.time.replace(':00', '')}</td>
                         <td class="col-p1" style="padding:10px 5px; font-weight:bold; color:#fff; font-size:0.9rem;">${item.event}</td>
                         <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.9rem;">${offer}</td>
-                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.9rem;">${status}</td>
+                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.85rem;">${status}</td>
                     `;
                     tbody.appendChild(tr);
                 });
-                
-                // 初次執行檢查
                 checkSize();
             }
 
-            // 全域函式供按鈕呼叫
             window.switchTab = function(n) {
                 const table = document.getElementById('flight-table-display');
-                const btn1 = document.getElementById('tab-btn-1'); // 假設這是 Schedule 按鈕 ID
-                const btn2 = document.getElementById('tab-btn-2'); // 假設這是 Status 按鈕 ID
+                const btn1 = document.getElementById('tab-btn-1');
+                const btn2 = document.getElementById('tab-btn-2');
                 
-                // 切換 class
                 table.classList.remove('page-1', 'page-2');
                 table.classList.add('page-' + n);
                 
-                // 切換按鈕樣式
                 if(n===1) {
-                    // btn1 active
                     if(btn1) { btn1.style.background = '#2c3e50'; btn1.style.color = '#3498db'; }
                     if(btn2) { btn2.style.background = '#15191d'; btn2.style.color = '#7f8c8d'; }
                 } else {
-                    // btn2 active
                     if(btn1) { btn1.style.background = '#15191d'; btn1.style.color = '#7f8c8d'; }
                     if(btn2) { btn2.style.background = '#2c3e50'; btn2.style.color = '#3498db'; }
                 }
@@ -1078,11 +1074,12 @@
                 const isDesktop = window.innerWidth > 768;
                 const p1 = document.querySelectorAll('.col-p1');
                 const p2 = document.querySelectorAll('.col-p2');
+                // 電腦版全開
                 if(isDesktop) {
                     p1.forEach(e => e.style.display = 'table-cell');
                     p2.forEach(e => e.style.display = 'table-cell');
                 } else {
-                    // Mobile: reset to style defined in CSS/HTML classes (handled by switchTab class logic mostly, but let's reset inline display)
+                    // 手機版回歸 CSS 控制 (移除 inline style 讓 class 生效)
                      p1.forEach(e => e.style.display = '');
                      p2.forEach(e => e.style.display = '');
                 }
@@ -1646,4 +1643,5 @@
     </script>
 </body>
 </html>
+
 
