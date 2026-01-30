@@ -938,42 +938,57 @@
                 </div>
 
 <div class="info-box" style="padding: 10px; border-left: 4px solid #e74c3c;">
-    <h2 style="margin: 15px 0 15px 15px;">展覽航班時刻表</h2>
+    <h2 style="margin: 15px 0 15px 15px; text-align: center;">展覽航班時刻表</h2>
     
-    <div class="mobile-tab-controls" style="display: none; margin-bottom: 5px; border-bottom: 2px solid #34495e;">
-        <button id="tab-btn-1" onclick="switchTab(1)" style="flex:1; padding:10px; border:none; background:#2c3e50; color:#3498db; font-weight:bold; cursor:pointer;">SCHEDULE</button>
-        <button id="tab-btn-2" onclick="switchTab(2)" style="flex:1; padding:10px; border:none; background:#15191d; color:#7f8c8d; font-weight:bold; cursor:pointer;">STATUS / OFFERS</button>
+    <div class="mobile-tab-controls" style="display: none; margin-bottom: 5px; border-bottom: 2px solid #34495e; justify-content: center;">
+        <button id="tab-btn-1" onclick="switchTab(1)" style="flex:1; max-width: 150px; padding:10px; border:none; background:#2c3e50; color:#3498db; font-weight:bold; cursor:pointer;">SCHEDULE</button>
+        <button id="tab-btn-2" onclick="switchTab(2)" style="flex:1; max-width: 150px; padding:10px; border:none; background:#15191d; color:#7f8c8d; font-weight:bold; cursor:pointer;">STATUS / OFFERS</button>
     </div>
 
-    <div class="flight-board-container" style="padding-bottom: 5px;">
-        <table class="flight-table page-1" id="flight-table-display" style="width:100%; border-collapse:separate; border-spacing:0 2px; table-layout:fixed;">
+    <div class="flight-board-container" style="padding-bottom: 10px; text-align: center;">
+        <table class="flight-table page-1" id="flight-table-display" style="width:95%; margin: 0 auto; border-collapse:separate; border-spacing:0 4px; table-layout:fixed;">
             <thead>
                 <tr>
-                    <th class="col-fixed" style="width:20%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">DATE</th>
-                    <th class="col-time" style="width:20%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">TIME</th>
-                    <th class="col-p1" style="width:60%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">FLIGHT / EVENT</th>
-                    <th class="col-p2" style="width:30%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333; display:none;">OFFER</th>
-                    <th class="col-p2" style="width:30%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333; display:none;">STATUS</th>
+                    <th class="col-fixed" style="width:20%;">DATE</th>
+                    <th class="col-time" style="width:20%;">TIME</th>
+                    <th class="col-p1" style="width:55%;">FLIGHT / EVENT</th>
+                    <th class="col-p2" style="width:30%; display:none;">OFFER</th>
+                    <th class="col-p2" style="width:25%; display:none;">STATUS</th>
                 </tr>
             </thead>
             <tbody id="exhibition-schedule-body">
                 </tbody>
         </table>
         
-        <div class="marquee-container" style="width:100%; overflow:hidden; white-space:nowrap; padding:6px 0; margin-top:5px; border-top:2px solid #34495e; color:#f1c40f; background:#000; font-family:'Share Tech Mono', monospace; font-size:0.85rem;">
+        <div class="marquee-container" style="width:95%; margin: 10px auto 0; overflow:hidden; white-space:nowrap; padding:6px 0; border-top:2px solid #34495e; color:#f1c40f; background:#000; font-family:'Share Tech Mono', monospace; font-size:0.85rem;">
             <div style="display:inline-block; padding-left:100%; animation:marquee 20s linear infinite;">
                  ★ 平日購票好康（2/3 - 2/6）平日購票入場者，驗票時可領取「門票全額抵用金券」。(入場後不補發，限領券當日使用，須全額抵用、不找零)      ★ 星光夜 (2/6-2/7) 開放至 22:00，享受夜間閱讀航程。
             </div>
         </div>
     </div>
     
-    <div style="margin-top: 15px; padding: 0 15px;">
-         <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn">
+    <div style="margin-top: 15px; padding: 0 15px; text-align: center;">
+         <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn" style="display: inline-block; width: auto; padding: 15px 30px;">
             查詢前往台北世貿一館航廈路線
         </a>
     </div>
 
     <style>
+        /* 表格通用樣式 */
+        .flight-table th, .flight-table td {
+            padding: 10px 5px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid #333;
+        }
+        .flight-table th {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .col-fixed { font-weight: bold; color: #fff; }
+        .col-time { font-family: 'Share Tech Mono'; color: #bdc3c7; }
+
         @media (max-width: 768px) {
             .mobile-tab-controls { display: flex !important; }
             /* Page 1 設定 */
@@ -982,16 +997,13 @@
             /* Page 2 設定 */
             .flight-table.page-2 .col-p1 { display: none !important; }
             .flight-table.page-2 .col-p2 { display: table-cell !important; }
-            
-            /* 固定欄位樣式 */
-            .col-fixed { font-weight: bold; color: #fff; }
-            .col-time { font-family: 'Share Tech Mono'; color: #bdc3c7; }
         }
         @media (min-width: 769px) {
             .col-p1, .col-p2 { display: table-cell !important; }
             .mobile-tab-controls { display: none !important; }
             /* 電腦版寬度微調 */
-            .col-time { width: 15% !important; }
+            .col-time { width: 18% !important; }
+            .col-p1 { width: 57% !important; }
         }
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
     </style>
@@ -1019,7 +1031,6 @@
                     const endH = parseInt(item.time.split('-')[1].split(':')[0]);
                     const end = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), endH, 0);
                     
-                    // ★ 狀態改回完整單字，並調整字體大小確保不換行
                     let status = '<span style="color:#3498db; letter-spacing:0px; font-weight:bold; font-size:0.75rem;">SCHEDULED</span>';
                     let trStyle = 'background:#222;';
                     
@@ -1032,7 +1043,6 @@
                         status = '<span style="color:#e74c3c; font-weight:bold; font-size:0.8rem;">SOON</span>'; 
                     }
 
-                    // 優惠標籤
                     let offer = item.hasOffer ? 
                         '<span style="display:inline-block; background:#f1c40f; color:#000; border-radius:2px; font-weight:bold; white-space:nowrap; padding:1px 3px; font-size:0.65rem; line-height:1.2;">贈抵用金</span>' : 
                         '<span style="color:#555">-</span>';
@@ -1044,11 +1054,11 @@
                     const tr = document.createElement('tr');
                     tr.style.cssText = trStyle;
                     tr.innerHTML = `
-                        <td class="col-fixed" style="padding:10px 5px; line-height:1.2; font-size:0.9rem; color:#ecf0f1;">${parts[1]}/${parts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
-                        <td class="col-time" style="padding:10px 5px; font-family:'Share Tech Mono'; font-size:0.85rem; color:#bdc3c7;">${item.time.replace(':00', '')}</td>
-                        <td class="col-p1" style="padding:10px 5px; font-weight:bold; color:#fff; font-size:0.9rem;">${item.event}</td>
-                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.9rem;">${offer}</td>
-                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.85rem;">${status}</td>
+                        <td class="col-fixed" style="line-height:1.2; font-size:0.9rem; color:#ecf0f1;">${parts[1]}/${parts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
+                        <td class="col-time" style="font-size:0.85rem;">${item.time.replace(':00', '')}</td>
+                        <td class="col-p1" style="font-weight:bold; color:#fff; font-size:0.9rem;">${item.event}</td>
+                        <td class="col-p2" style="display:none; font-size:0.9rem;">${offer}</td>
+                        <td class="col-p2" style="display:none; font-size:0.85rem;">${status}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1076,12 +1086,10 @@
                 const isDesktop = window.innerWidth > 768;
                 const p1 = document.querySelectorAll('.col-p1');
                 const p2 = document.querySelectorAll('.col-p2');
-                // 電腦版全開
                 if(isDesktop) {
                     p1.forEach(e => e.style.display = 'table-cell');
                     p2.forEach(e => e.style.display = 'table-cell');
                 } else {
-                    // 手機版回歸 CSS 控制
                      p1.forEach(e => e.style.display = '');
                      p2.forEach(e => e.style.display = '');
                 }
@@ -1645,6 +1653,7 @@
     </script>
 </body>
 </html>
+
 
 
 
