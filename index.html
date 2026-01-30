@@ -949,11 +949,11 @@
         <table class="flight-table page-1" id="flight-table-display">
             <thead>
                 <tr>
-                    <th class="col-fixed" style="width: 20%;">DATE</th>
-                    <th class="col-p1" style="width: 25%;">TIME</th>
-                    <th class="col-p1" style="width: 55%;">FLIGHT / EVENT</th>
-                    <th class="col-p2" style="width: 55%;">OFFER / REMARKS</th>
-                    <th class="col-p2" style="width: 25%;">STATUS</th>
+                    <th class="col-date">DATE</th>
+                    <th class="col-time">TIME</th>
+                    <th class="col-event">FLIGHT / EVENT</th>
+                    <th class="col-offer">OFFER / REMARKS</th>
+                    <th class="col-status">STATUS</th>
                 </tr>
             </thead>
             <tbody id="exhibition-schedule-body">
@@ -979,25 +979,27 @@
     .flight-table { 
         width: 100%; 
         border-collapse: separate; 
-        border-spacing: 0 2px; /* 縮小行距 */
+        border-spacing: 0 2px; 
         color: #ecf0f1; 
+        table-layout: fixed; /* 固定佈局，避免被內容撐壞 */
     }
     
     .flight-table th { 
         text-align: left; 
-        padding: 8px 10px; 
+        padding: 10px; 
         color: #95a5a6; 
-        font-size: 0.75rem; 
+        font-size: 0.8rem; 
         border-bottom: 1px solid #333; 
         letter-spacing: 1px;
+        white-space: nowrap; /* 標題不換行 */
     }
     
     .flight-table td { 
-        padding: 8px 10px; /* 縮小內距讓高度變矮 */
+        padding: 10px; 
         background: #222; 
-        font-size: 0.9rem; 
+        font-size: 0.95rem; 
         vertical-align: middle; 
-        line-height: 1.3;
+        line-height: 1.4;
     }
     
     /* --- 狀態與標籤樣式 --- */
@@ -1006,102 +1008,85 @@
     .status-arrived { color: #7f8c8d; opacity: 0.7; }
     .status-scheduled { color: #3498db; letter-spacing: 1px; }
     
-    /* 精緻版黃色標籤 */
+    /* ★ 黃色標籤優化 (關鍵修改) */
     .voucher-tag { 
         display: inline-block; 
         background: #f1c40f; 
         color: #000; 
-        padding: 1px 4px; 
-        border-radius: 2px; 
-        font-size: 0.7rem; 
+        padding: 3px 8px; /* 電腦版 padding 加大一點 */
+        border-radius: 4px; 
+        font-size: 0.85rem; 
         font-weight: bold; 
-        line-height: 1;
+        white-space: nowrap; /* ★ 強制不換行，解決擠壓問題 */
         margin-bottom: 2px;
+        box-shadow: 0 0 5px rgba(241, 196, 15, 0.4);
     }
     
-    /* 星光夜小字 */
-    .note-text {
-        font-size: 0.75rem; 
-        color: #9b59b6; 
-        margin-top: 2px; 
-        display: block;
-    }
+    .note-text { font-size: 0.75rem; color: #9b59b6; margin-top: 4px; display: block; }
     
     /* --- 跑馬燈 --- */
-    .marquee-container { 
-        width: 100%; 
-        background: #000; 
-        color: #f1c40f; 
-        border-top: 2px solid #34495e; 
-        overflow: hidden; 
-        white-space: nowrap; 
-        padding: 6px 0; 
-        margin-top: 2px; 
-        font-family: 'Share Tech Mono', monospace; 
-        font-size: 0.85rem; 
-        position: relative; 
-    }
+    .marquee-container { width: 100%; background: #000; color: #f1c40f; border-top: 2px solid #34495e; overflow: hidden; white-space: nowrap; padding: 6px 0; margin-top: 2px; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; position: relative; }
     .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; }
     @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
     /* --- 分頁按鈕樣式 (預設隱藏) --- */
-    .mobile-tab-controls { 
-        display: none; 
-        gap: 0; 
-        margin-bottom: 0; 
-        padding: 0;
-        border-bottom: 2px solid #34495e;
-    }
-    .tab-btn { 
-        flex: 1; 
-        background: #15191d; 
-        border: none; 
-        border-right: 1px solid #333;
-        color: #7f8c8d; 
-        padding: 8px 0; 
-        font-weight: bold; 
-        cursor: pointer; 
-        font-family: 'Share Tech Mono'; 
-        font-size: 0.85rem;
-        letter-spacing: 1px; 
-        transition: all 0.2s; 
-    }
+    .mobile-tab-controls { display: none; gap: 0; margin-bottom: 0; padding: 0; border-bottom: 2px solid #34495e; }
+    .tab-btn { flex: 1; background: #15191d; border: none; border-right: 1px solid #333; color: #7f8c8d; padding: 10px 0; font-weight: bold; cursor: pointer; font-family: 'Share Tech Mono'; font-size: 0.9rem; letter-spacing: 1px; transition: all 0.2s; }
     .tab-btn:last-child { border-right: none; }
-    .tab-btn.active { 
-        background: #2c3e50; 
-        color: #3498db; 
-        box-shadow: inset 0 -3px 0 #3498db; 
-    }
+    .tab-btn.active { background: #2c3e50; color: #3498db; box-shadow: inset 0 -3px 0 #3498db; }
 
-    /* --- RWD 手機版設定 (關鍵邏輯) --- */
-    @media (max-width: 768px) {
-        /* 1. 顯示分頁按鈕 */
-        .mobile-tab-controls { display: flex !important; }
-
-        /* 2. Page 1 (預設)：隱藏 P2 欄位 */
-        .flight-table.page-1 .col-p2 { display: none; }
-        .flight-table.page-1 .col-p1 { display: table-cell; }
-
-        /* 3. Page 2 (狀態/優惠)：隱藏 P1 欄位 */
-        .flight-table.page-2 .col-p1 { display: none; }
-        .flight-table.page-2 .col-p2 { display: table-cell; }
-        
-        /* 4. 固定欄位永遠顯示 */
-        .col-fixed { font-weight: bold; color: #fff; width: 25%; }
-        
-        /* 5. 手機版字體再微調 */
-        .flight-table td { padding: 8px 5px; font-size: 0.85rem; }
-        .voucher-tag { font-size: 0.65rem; }
-    }
-    
-    /* 電腦版：強制顯示所有欄位 */
+    /* =========================================
+       電腦版設定 (大畫面)
+       ========================================= */
     @media (min-width: 769px) {
-        .col-p1, .col-p2 { display: table-cell !important; }
+        /* 強制顯示所有欄位 */
+        .col-time, .col-event, .col-offer, .col-status { display: table-cell !important; }
+        
+        /* 電腦版欄位寬度分配 (總和 100%) */
+        .col-date   { width: 12%; }
+        .col-time   { width: 18%; }
+        .col-event  { width: 30%; }
+        .col-offer  { width: 25%; } /* 給優惠欄位足夠寬度 */
+        .col-status { width: 15%; }
+    }
+
+    /* =========================================
+       手機版設定 (RWD 分頁邏輯)
+       ========================================= */
+    @media (max-width: 768px) {
+        .mobile-tab-controls { display: flex !important; }
+        
+        /* 字體微調縮小 */
+        .flight-table td { padding: 8px 5px; font-size: 0.9rem; }
+        .voucher-tag { font-size: 0.7rem; padding: 2px 5px; } /* 手機版標籤稍微縮小 */
+
+        /* Page 1 (預設)：顯示 Date, Time, Event */
+        .flight-table.page-1 .col-offer, 
+        .flight-table.page-1 .col-status { display: none; }
+        
+        .flight-table.page-1 .col-time, 
+        .flight-table.page-1 .col-event { display: table-cell; }
+
+        /* Page 2 (狀態/優惠)：顯示 Date, Offer, Status */
+        .flight-table.page-2 .col-time, 
+        .flight-table.page-2 .col-event { display: none; }
+        
+        .flight-table.page-2 .col-offer, 
+        .flight-table.page-2 .col-status { display: table-cell; }
+        
+        /* 手機版欄位寬度分配 */
+        .col-date { width: 25%; font-weight: bold; color: #fff; } /* 固定欄位 */
+        
+        /* 分頁欄位寬度 */
+        .flight-table.page-1 .col-time  { width: 30%; }
+        .flight-table.page-1 .col-event { width: 45%; }
+        
+        .flight-table.page-2 .col-offer  { width: 50%; }
+        .flight-table.page-2 .col-status { width: 25%; }
     }
 </style>
 
 <script>
-    // 展覽時程表數據
     const exhibitionSchedule = [
         { date: '2026/02/03', day: '週二', time: '10:00-18:00', event: '首航開啟', hasOffer: true },
         { date: '2026/02/04', day: '週三', time: '10:00-18:00', event: '平日巡航', hasOffer: true },
@@ -1119,31 +1104,24 @@
 
         exhibitionSchedule.forEach(item => {
             const dateParts = item.date.split('/');
-            // 月份要減1
             const itemDateStart = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), 10, 0, 0);
-            
-            // 結束時間解析
             const endHour = parseInt(item.time.split('-')[1].split(':')[0]);
             const itemDateEnd = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), endHour, 0, 0);
 
-            // 狀態判斷
             let statusHtml = '<span class="status-scheduled">SCHEDULED</span>';
             let rowStyle = '';
-
-            // 時間差計算
             const oneDay = 1000 * 60 * 60 * 24;
             const diffTime = itemDateStart - now;
 
             if (now > itemDateEnd) {
                 statusHtml = '<span class="status-arrived">ARRIVED</span>';
-                rowStyle = 'opacity: 0.5;'; // 過期變暗
+                rowStyle = 'opacity: 0.5;'; 
             } else if (now >= itemDateStart && now <= itemDateEnd) {
                 statusHtml = '<span class="status-boarding">ON TIME</span>';
             } else if (diffTime > 0 && diffTime < oneDay) {
                 statusHtml = '<span class="status-delayed">SOON</span>';
             }
 
-            // 優惠判斷 (微調結構)
             let offerHtml = item.hasOffer ? '<span class="voucher-tag">★ 贈抵用金</span>' : '';
             if (item.event.includes('星光')) {
                 let prefix = offerHtml ? '<br>' : '';
@@ -1154,19 +1132,18 @@
             const tr = document.createElement('tr');
             if(rowStyle) tr.style.cssText = rowStyle;
 
-            // 生成列 HTML
+            // 注意：這裡的 class 名稱 (col-date 等) 對應 CSS 的寬度設定
             tr.innerHTML = `
-                <td class="col-fixed" style="line-height:1.2;">${dateParts[1]}/${dateParts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
-                <td class="col-p1" style="font-family:'Share Tech Mono'">${item.time}</td>
-                <td class="col-p1" style="font-weight:bold; color:#fff;">${item.event}</td>
-                <td class="col-p2">${offerHtml}</td>
-                <td class="col-p2">${statusHtml}</td>
+                <td class="col-date" style="line-height:1.2;">${dateParts[1]}/${dateParts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
+                <td class="col-time" style="font-family:'Share Tech Mono'">${item.time}</td>
+                <td class="col-event" style="font-weight:bold; color:#fff;">${item.event}</td>
+                <td class="col-offer">${offerHtml}</td>
+                <td class="col-status">${statusHtml}</td>
             `;
             tbody.appendChild(tr);
         });
     }
     
-    // --- 手機版分頁切換邏輯 ---
     function switchTab(pageNum) {
         const table = document.getElementById('flight-table-display');
         const btn1 = document.getElementById('tab-btn-1');
@@ -1185,15 +1162,11 @@
         }
     }
 
-    // 初始化與計時器
     window.addEventListener('load', () => {
         updateScheduleBoard();
-        // 確保初始狀態正確
         const table = document.getElementById('flight-table-display');
         if(table) table.classList.add('page-1');
     });
-    
-    // 每 60 秒更新一次狀態
     setInterval(updateScheduleBoard, 60000);
 </script>
         </div>
@@ -1700,6 +1673,7 @@
     </script>
 </body>
 </html>
+
 
 
 
