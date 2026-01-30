@@ -937,26 +937,163 @@
                     </div>
                 </div>
 
-                <div class="info-box">
-                    <h2>展覽資訊</h2>
-                    <ul>
-                        <li>時間：2026/2/3(二) - 2/8(日)</li>
-                        <li>地點：台北世界貿易中心 展覽一館</li>
-                        <li>地址：臺北市信義路五段五號1樓</li>
-                    </ul>
-                    
-                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2);">
-                        <p style="color: #f1c40f; font-weight: bold; margin-bottom: 5px;">★ 平日購票好康（2/3 - 2/6）</p>
-                        <p style="font-size: 0.95rem; color: #bdc3c7; line-height: 1.6;">
-                            平日購票入場者，驗票時可領取<span style="color: #fff; font-weight: bold;">「門票全額抵用金券」</span>。<br>
-                            <span style="font-size: 0.85rem; opacity: 0.8;">(入場後不補發，限領券當日使用，須全額抵用、不找零)</span>
-                        </p>
-                    </div>
+<div class="info-box" style="padding: 10px; border-left: 4px solid #e74c3c;">
+    <h2 style="margin: 15px 0 15px 15px;">展覽航班時刻表</h2>
+    
+    <div class="mobile-tab-controls" style="display: none; margin-bottom: 5px; border-bottom: 2px solid #34495e;">
+        <button id="tab-btn-1" onclick="switchTab(1)" style="flex:1; padding:10px; border:none; background:#2c3e50; color:#3498db; font-weight:bold; cursor:pointer;">SCHEDULE</button>
+        <button id="tab-btn-2" onclick="switchTab(2)" style="flex:1; padding:10px; border:none; background:#15191d; color:#7f8c8d; font-weight:bold; cursor:pointer;">STATUS / OFFERS</button>
+    </div>
 
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn">
-                        查詢還要多久抵達人生候機室
-                    </a>
-                </div>
+    <div class="flight-board-container" style="padding-bottom: 5px;">
+        <table class="flight-table page-1" id="flight-table-display" style="width:100%; border-collapse:separate; border-spacing:0 2px; table-layout:fixed;">
+            <thead>
+                <tr>
+                    <th class="col-fixed" style="width:20%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">DATE</th>
+                    <th class="col-p1" style="width:25%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">TIME</th>
+                    <th class="col-p1" style="width:55%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333;">FLIGHT / EVENT</th>
+                    <th class="col-p2" style="width:55%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333; display:none;">OFFER / REMARKS</th>
+                    <th class="col-p2" style="width:25%; padding:8px 5px; text-align:left; color:#95a5a6; border-bottom:1px solid #333; display:none;">STATUS</th>
+                </tr>
+            </thead>
+            <tbody id="exhibition-schedule-body">
+                </tbody>
+        </table>
+        
+        <div class="marquee-container" style="width:100%; overflow:hidden; white-space:nowrap; padding:6px 0; margin-top:5px; border-top:2px solid #34495e; color:#f1c40f; background:#000; font-family:'Share Tech Mono', monospace; font-size:0.85rem;">
+            <div style="display:inline-block; padding-left:100%; animation:marquee 20s linear infinite;">
+                 ★ 平日購票好康（2/3 - 2/6）平日購票入場者，驗票時可領取「門票全額抵用金券」。(入場後不補發，限領券當日使用，須全額抵用、不找零)      ★ 星光夜 (2/6-2/7) 開放至 22:00，享受夜間閱讀航程。
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 15px; padding: 0 15px;">
+         <a href="https://www.google.com/maps/dir/?api=1&destination=台北世貿一館" target="_blank" class="nav-btn">
+            查詢前往台北世貿一館航廈路線
+        </a>
+    </div>
+
+    <style>
+        /* 手機版：顯示分頁按鈕，隱藏對應欄位 */
+        @media (max-width: 768px) {
+            .mobile-tab-controls { display: flex !important; }
+            .flight-table.page-1 .col-p2 { display: none !important; }
+            .flight-table.page-1 .col-p1 { display: table-cell !important; }
+            .flight-table.page-2 .col-p1 { display: none !important; }
+            .flight-table.page-2 .col-p2 { display: table-cell !important; }
+            /* 手機版日期欄位加寬 */
+            .col-fixed { width: 25% !important; font-weight: bold; color: #fff; }
+        }
+        /* 電腦版：強制全開 */
+        @media (min-width: 769px) {
+            .col-p1, .col-p2 { display: table-cell !important; }
+            .mobile-tab-controls { display: none !important; }
+        }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+    </style>
+
+    <script>
+        (function() { // 使用立即執行函式避免變數汙染
+            const schedule = [
+                { date: '2026/02/03', day: '週二', time: '10:00-18:00', event: '首航開啟', hasOffer: true },
+                { date: '2026/02/04', day: '週三', time: '10:00-18:00', event: '平日巡航', hasOffer: true },
+                { date: '2026/02/05', day: '週四', time: '10:00-18:00', event: '平日巡航', hasOffer: true },
+                { date: '2026/02/06', day: '週五', time: '10:00-22:00', event: '星光夜航', hasOffer: true },
+                { date: '2026/02/07', day: '週六', time: '10:00-22:00', event: '星光夜航', hasOffer: false },
+                { date: '2026/02/08', day: '週日', time: '10:00-20:00', event: '最終降落', hasOffer: false }
+            ];
+
+            function renderBoard() {
+                const tbody = document.getElementById('exhibition-schedule-body');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                const now = new Date();
+
+                schedule.forEach(item => {
+                    const parts = item.date.split('/');
+                    const start = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), 10, 0);
+                    const endH = parseInt(item.time.split('-')[1].split(':')[0]);
+                    const end = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), endH, 0);
+                    
+                    let status = '<span style="color:#3498db; letter-spacing:1px; font-weight:bold;">SCHEDULED</span>';
+                    let trStyle = 'background:#222;';
+                    
+                    if(now > end) { 
+                        status = '<span style="color:#7f8c8d; opacity:0.7;">ARRIVED</span>'; 
+                        trStyle += ' opacity:0.5;'; 
+                    } else if(now >= start) { 
+                        status = '<span style="color:#f1c40f; font-weight:bold; animation:pulse 1s infinite;">ON TIME</span>'; 
+                    } else if((start - now) < 86400000 && (start - now) > 0) { 
+                        status = '<span style="color:#e74c3c; font-weight:bold;">SOON</span>'; 
+                    }
+
+                    // ★ 強制縮小標籤樣式 (font-size:0.7rem)
+                    let offer = item.hasOffer ? 
+                        '<span style="display:inline-block; background:#f1c40f; color:#000; border-radius:2px; font-weight:bold; white-space:nowrap; padding:1px 3px; font-size:0.7rem; line-height:1.2; box-shadow:0 0 5px rgba(241,196,15,0.4);">★ 贈抵用金</span>' : 
+                        '<span style="color:#555">-</span>';
+                    
+                    if(item.event.includes('星光')) {
+                        offer += (item.hasOffer ? '<br>' : '') + '<span style="font-size:0.75rem; color:#9b59b6; margin-top:2px; display:block;">★ 星光夜</span>';
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.style.cssText = trStyle;
+                    tr.innerHTML = `
+                        <td class="col-fixed" style="padding:10px 5px; line-height:1.2; font-size:0.9rem; color:#ecf0f1;">${parts[1]}/${parts[2]}<br><span style="font-size:0.8em; color:#888;">(${item.day})</span></td>
+                        <td class="col-p1" style="padding:10px 5px; font-family:'Share Tech Mono'; font-size:0.9rem; color:#bdc3c7;">${item.time}</td>
+                        <td class="col-p1" style="padding:10px 5px; font-weight:bold; color:#fff; font-size:0.9rem;">${item.event}</td>
+                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.9rem;">${offer}</td>
+                        <td class="col-p2" style="padding:10px 5px; display:none; font-size:0.9rem;">${status}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                // 初次執行檢查
+                checkSize();
+            }
+
+            // 全域函式供按鈕呼叫
+            window.switchTab = function(n) {
+                const table = document.getElementById('flight-table-display');
+                const btn1 = document.getElementById('tab-btn-1'); // 假設這是 Schedule 按鈕 ID
+                const btn2 = document.getElementById('tab-btn-2'); // 假設這是 Status 按鈕 ID
+                
+                // 切換 class
+                table.classList.remove('page-1', 'page-2');
+                table.classList.add('page-' + n);
+                
+                // 切換按鈕樣式
+                if(n===1) {
+                    // btn1 active
+                    if(btn1) { btn1.style.background = '#2c3e50'; btn1.style.color = '#3498db'; }
+                    if(btn2) { btn2.style.background = '#15191d'; btn2.style.color = '#7f8c8d'; }
+                } else {
+                    // btn2 active
+                    if(btn1) { btn1.style.background = '#15191d'; btn1.style.color = '#7f8c8d'; }
+                    if(btn2) { btn2.style.background = '#2c3e50'; btn2.style.color = '#3498db'; }
+                }
+            };
+
+            function checkSize() {
+                const isDesktop = window.innerWidth > 768;
+                const p1 = document.querySelectorAll('.col-p1');
+                const p2 = document.querySelectorAll('.col-p2');
+                if(isDesktop) {
+                    p1.forEach(e => e.style.display = 'table-cell');
+                    p2.forEach(e => e.style.display = 'table-cell');
+                } else {
+                    // Mobile: reset to style defined in CSS/HTML classes (handled by switchTab class logic mostly, but let's reset inline display)
+                     p1.forEach(e => e.style.display = '');
+                     p2.forEach(e => e.style.display = '');
+                }
+            }
+
+            window.addEventListener('resize', checkSize);
+            renderBoard();
+            setInterval(renderBoard, 60000);
+        })();
+    </script>
+</div>
 
                 <div class="info-box">
                     <h2>人生候機室攤位位置：D720</h2>
@@ -1509,3 +1646,4 @@
     </script>
 </body>
 </html>
+
