@@ -763,8 +763,8 @@
     position: absolute;
     border: 2px solid #e74c3c;
     border-radius: 50%;
-    width: 220px;
-    height: 220px;
+    width: 300px;
+    height: 300px;
     display: none;
     z-index: 10;
     background-repeat: no-repeat;
@@ -931,7 +931,7 @@
                 margin-bottom: 0;
             }
 
-            .magnifier { width: 170px; height: 170px; }
+            .magnifier { width: 260px; height: 260px; }
         }
 
         /* marker bounce 既有動畫沿用 */
@@ -1660,74 +1660,59 @@ window.switchMapMode = function(mode, btn) {
     if (mode === 'radar' && activePlanes.length === 0) initRadar();
 };
 
-// B. 靜態放大鏡 (優化版：手機偏移 + 防捲動)
+// B. 靜態放大鏡（手機點選置中版：不做 Y 偏移）
 (function() {
     const staticMap = document.getElementById('static-map-container');
     const img = document.getElementById('static-map-img');
     const magnifier = document.getElementById('static-magnifier');
     const ZOOM = 2.5;
-    
-    // 手機版放大鏡向上偏移量 (避免手指擋住視線)
-    const MOBILE_OFFSET_Y = 120; 
 
     if (!staticMap || !img || !magnifier) return;
 
     magnifier.style.backgroundImage = "url('map.jpg')";
 
-    // 新增 isTouch 參數
-    function moveMagnifier(clientX, clientY, isTouch = false) {
+    function moveMagnifier(clientX, clientY) {
         const rect = staticMap.getBoundingClientRect();
         const x = clientX - rect.left;
         const y = clientY - rect.top;
 
-        // 核心邏輯：如果是觸控，鏡子位置往上減 MOBILE_OFFSET_Y
-        const displayY = isTouch ? (y - MOBILE_OFFSET_Y) : y;
-
         const r = magnifier.offsetWidth / 2;
-        
-        // 放大鏡的位置 (使用偏移後的 displayY)
+
+        // ✅ 鏡子中心就對準手指點的位置（不偏移）
         const clampedX = Math.max(r, Math.min(x, rect.width - r));
-        const minY = isTouch ? -r : r; // 允許手機版鏡子稍微凸出上方邊界
-        const clampedY = Math.max(minY, Math.min(displayY, rect.height - r));
+        const clampedY = Math.max(r, Math.min(y, rect.height - r));
 
         magnifier.style.display = 'block';
         magnifier.style.left = (clampedX - r) + 'px';
-        magnifier.style.top = (clampedY - r) + 'px';
+        magnifier.style.top  = (clampedY - r) + 'px';
 
         const bgW = rect.width * ZOOM;
         const bgH = rect.height * ZOOM;
         magnifier.style.backgroundSize = bgW + "px " + bgH + "px";
 
-        // 背景圖定位：依然使用「原始手指位置 (x, y)」來計算
-        // 這樣才能達成「鏡子在上方，但照的是手指下方」的效果
-        const bgX = -(x * ZOOM) + r;
-        const bgY = -(y * ZOOM) + r;
+        // ✅ 放大內容以「手指點到的位置」為中心，落在鏡子正中央
+        const bgX = -(clampedX * ZOOM) + r;
+        const bgY = -(clampedY * ZOOM) + r;
         magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
     }
 
-    // 滑鼠事件 (保持原樣)
-    staticMap.addEventListener('mousemove', (e) => moveMagnifier(e.clientX, e.clientY, false));
+    // 滑鼠（桌機）
+    staticMap.addEventListener('mousemove', (e) => moveMagnifier(e.clientX, e.clientY));
     staticMap.addEventListener('mouseleave', () => magnifier.style.display = 'none');
 
-    // --- 手機觸控事件優化 ---
-    
-    // 1. touchstart
+    // 觸控（手機）
     staticMap.addEventListener('touchstart', (e) => {
         if (!e.touches || !e.touches[0]) return;
-        // 阻止預設行為，防止點擊穿透或雙擊縮放
-        if(e.cancelable) e.preventDefault(); 
-        moveMagnifier(e.touches[0].clientX, e.touches[0].clientY, true);
-    }, { passive: false }); // 必須設為 false 才能使用 preventDefault
-
-    // 2. touchmove
-    staticMap.addEventListener('touchmove', (e) => {
-        if (!e.touches || !e.touches[0]) return;
-        // 關鍵：鎖定頁面捲動，讓拖曳順暢
-        if(e.cancelable) e.preventDefault();
-        moveMagnifier(e.touches[0].clientX, e.touches[0].clientY, true);
+        if (e.cancelable) e.preventDefault();
+        moveMagnifier(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: false });
 
-    // 3. touchend
+    staticMap.addEventListener('touchmove', (e) => {
+        if (!e.touches || !e.touches[0]) return;
+        if (e.cancelable) e.preventDefault();
+        moveMagnifier(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
     staticMap.addEventListener('touchend', () => magnifier.style.display = 'none');
 })();
 
